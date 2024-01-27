@@ -52,7 +52,6 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-
         $rules = [
             'name' => 'required',
             'last_name' => 'required',
@@ -84,18 +83,13 @@ class AuthController extends Controller
         }
         $user = new User();
         $user->fill($request->all());
-        // $user->password = Hash::make($request->password);
-        $userExist = User::where('role_id', 1)->first();
-        $user->role_id = $userExist ? 2 : 1;
-        $user->status = false;
+        $user->save();
         $url = URL::temporarySignedRoute(
             'verifyEmail',
-            now()->addMinutes(30),
+            now()->addMinutes(10),
             ['id' => $user->id]
         );
-        SendMail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(5));
-        $user->save();
-
+        ProcessVerifyEmail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(10));
         return Inertia::render('LoginForm');
     }
 
@@ -108,11 +102,10 @@ class AuthController extends Controller
     }
     public function verifyEmail(Request $request)
     {
+        if (!$request->hasValidSignature()) {
+            abort(401);
+        }
         $user = User::findOrFail($request->id);
-        $user->status = true;
-        $user->save();
-        return response()->json([
-            "message" => "User verified"
-        ], 200);
+        return Inertia::render('VerifyEmailForm');
     }
 }

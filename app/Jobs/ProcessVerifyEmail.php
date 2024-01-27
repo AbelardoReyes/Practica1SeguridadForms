@@ -14,12 +14,15 @@ use App\Mail\VerifyMail;
 class ProcessVerifyEmail implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    protected $user;
+    protected $url;
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(User $user, $url)
     {
-        //
+        $this->user = $user;
+        $this->url = $url;
     }
 
     /**
@@ -27,5 +30,6 @@ class ProcessVerifyEmail implements ShouldQueue
      */
     public function handle(): void
     {
+        Mail::to($this->user->email)->send(new VerifyMail($this->user, $this->url));
     }
 }

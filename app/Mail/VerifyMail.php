@@ -18,7 +18,7 @@ class VerifyMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user, string $url)
+    public function __construct(User $user,$url)
     {
         $this->user = $user;
         $this->url = $url;
@@ -43,6 +43,7 @@ class VerifyMail extends Mailable
             view: 'email.verifyEmail',
             with: [
                 'name' => $this->user->name,
+                'email' => $this->user->email,
                 'url' => $this->url,
             ],
         );

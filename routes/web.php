@@ -47,6 +47,9 @@ Route::prefix('auth')->group(function () {
     Route::get('/register', function () {
         return Inertia::render('RegisterForm');
     })->name('registerView');
+    Route::get('/verify-email', function () {
+        return Inertia::render('VerifyEmailForm');
+    })->name('verifyEmailView');
 });
 
 require __DIR__ . '/auth.php';

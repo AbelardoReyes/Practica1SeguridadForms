@@ -46,4 +46,16 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            // Verifica si ya existe un registro con el rol 1
+            $existingRoleOneUser = User::where('role_id', 1)->exists();
+
+            // Asigna el rol correspondiente
+            $user->role_id = $existingRoleOneUser ? 2 : 1;
+        });
+    }
 }
