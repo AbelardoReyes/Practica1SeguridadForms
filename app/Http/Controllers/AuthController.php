@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\VerifyMail;
 use App\Jobs\ProcessVerifyEmail;
 use App\Jobs\SendMail;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
@@ -47,7 +48,7 @@ class AuthController extends Controller
             PersonalAccessTokens::where('tokenable_id', $user->id)->delete();
         }
         $token = $user->createToken('auth_token')->plainTextToken;
-        return Inertia::render('LoginForm');
+        return Inertia::render('Home');
     }
 
     public function register(Request $request)
@@ -86,7 +87,7 @@ class AuthController extends Controller
         $user->save();
         $url = URL::temporarySignedRoute(
             'verifyEmail',
-            now()->addMinutes(10),
+            now()->addMinutes(30),
             ['id' => $user->id]
         );
         ProcessVerifyEmail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(10));
@@ -105,7 +106,8 @@ class AuthController extends Controller
         if (!$request->hasValidSignature()) {
             abort(401);
         }
-        $user = User::findOrFail($request->id);
-        return Inertia::render('VerifyEmailForm');
+        $nRandom = rand(1000, 9999);
+        $user = User::find($request->id);
+        return Inertia::render('VerifyEmailForm',['user' => $user]);
     }
 }
