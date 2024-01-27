@@ -5,6 +5,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Redirect;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -35,13 +37,16 @@ use App\Http\Controllers\AuthController;
 //     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 // });
 Route::get('/', function () {
-    return Inertia::render('LoginForm');
+    return Redirect::route('loginView');
 });
-Route::controller(AuthController::class)->prefix('/auth')->group(function () {
-    Route::post('/login', 'login')->name('login');
-    Route::post('/register', 'register');
-    Route::get('/logout', 'logout')->middleware('auth:sanctum');
-    Route::get('/verifyEmail', 'verifyEmail')->name('verifyEmail')->middleware('signed');
+
+Route::prefix('auth')->group(function () {
+    Route::get('/login', function () {
+        return Inertia::render('LoginForm');
+    })->name('loginView');
+    Route::get('/register', function () {
+        return Inertia::render('RegisterForm');
+    })->name('registerView');
 });
 
 require __DIR__ . '/auth.php';

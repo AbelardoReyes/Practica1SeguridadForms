@@ -18,12 +18,3 @@ use App\Http\Controllers\AuthController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::prefix('/v1')->group(function () {
-    Route::controller(AuthController::class)->prefix('/auth')->group(function () {
-        Route::post('/login', 'login');
-        Route::post('/register', 'register');
-        Route::get('/logout', 'logout')->middleware('auth:sanctum');
-        Route::get('/verifyEmail','verifyEmail')->name('verifyEmail')->middleware('signed');
-    });
-});
-

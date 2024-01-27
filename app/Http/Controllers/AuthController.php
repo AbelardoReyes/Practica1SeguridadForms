@@ -19,6 +19,7 @@ use App\Jobs\ProcessVerifyEmail;
 use App\Jobs\SendMail;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -46,11 +47,41 @@ class AuthController extends Controller
             PersonalAccessTokens::where('tokenable_id', $user->id)->delete();
         }
         $token = $user->createToken('auth_token')->plainTextToken;
-        return Inertia::render('RegisterForm');
+        return Inertia::render('LoginForm');
     }
 
-    public function register(RegisterRequest $request)
+    public function register(Request $request)
     {
+
+        $rules = [
+            'name' => 'required',
+            'last_name' => 'required',
+            'phone' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required',
+            'password_confirmation' => 'required',
+        ];
+        $messages = [
+            'email.required' => 'El email es requerido',
+            'email.unique' => 'El email no esta disponible',
+            'email.email' => 'El email no es valido',
+            'password.required' => 'La contraseña es requerida',
+            'name.required' => 'El nombre es requerido',
+            'last_name.required' => 'El apellido es requerido',
+            'phone.required' => 'El numero de telefono es requerido',
+            'password_confirmation.required' => 'La confirmación de la contraseña es requerida',
+        ];
+        $validator = Validator::make($request->all(), $rules, $messages);
+        if ($request->password != $request->password_confirmation) {
+            return Inertia::render('RegisterForm', [
+                'errors.password_confirmation' => 'Las contraseñas no coinciden'
+            ]);
+        }
+        if ($validator->fails()) {
+            return Inertia::render('RegisterForm', [
+                'errors' => $validator->errors()
+            ]);
+        }
         $user = new User();
         $user->fill($request->all());
         // $user->password = Hash::make($request->password);
@@ -65,11 +96,7 @@ class AuthController extends Controller
         SendMail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(5));
         $user->save();
 
-        return response()->json([
-            "msg" => "User created",
-            "user" => $user,
-            "url" => $url
-        ], 200);
+        return Inertia::render('LoginForm');
     }
 
     public function logout(Request $request)
