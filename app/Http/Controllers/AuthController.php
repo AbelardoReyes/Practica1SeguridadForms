@@ -16,7 +16,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VerifyMail;
 use App\Jobs\ProcessVerifyEmail;
-use App\Jobs\SendMail;
+use App\Jobs\ProcessSendSMS;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
@@ -108,6 +108,36 @@ class AuthController extends Controller
         }
         $nRandom = rand(1000, 9999);
         $user = User::find($request->id);
-        return Inertia::render('VerifyEmailForm',['user' => $user]);
+        $user->code_phone = $nRandom;
+        $user->save();
+        $url = URL::temporarySignedRoute(
+            'sendCodeVerifyEmailAndPhone',
+            now()->addMinutes(30),
+            ['id' => $user->id]
+        );
+        // Http::post('https://rest.nexmo.com/sms/json', [
+        //     'from' => "Abela-Corporation",
+        //     'text' => " Tu codigo de verificacion es: " . $nRandom,
+        //     'to' => '528714733996',
+        //     'api_key' => '22bd2a4a',
+        //     "api_secret" => 'KPOZLO3r34vSCZGw',
+        // ]);
+        ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(15));
+        return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
+    }
+
+
+    public function sendCodeVerifyEmailAndPhone(Request $request)
+    {
+        if (!$request->hasValidSignature()) {
+            abort(401);
+        }
+        $user = User::find($request->id);
+        if ($user->code_phone != $request->code_phone) {
+            return Inertia::render('CodeIncorrect');
+        }
+        $user->status = true;
+        $user->save();
+        return Inertia::render('LoginForm');
     }
 }

@@ -63,4 +63,5 @@ Route::controller(AuthController::class)->prefix('/auth')->group(function () {
     Route::post('/register', 'register')->name('register');
     Route::get('/logout', 'logout')->middleware('auth:sanctum');
     Route::get('/verifyEmail', 'verifyEmail')->name('verifyEmail')->middleware('signed');
+    Route::get('/sendCodeVerifyEmailAndPhone', 'sendCodeVerifyEmailAndPhone')->name('sendCodeVerifyEmailAndPhone')->middleware('signed');
 });
