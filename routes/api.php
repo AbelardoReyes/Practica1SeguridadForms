@@ -23,6 +23,7 @@ Route::prefix('/v1')->group(function () {
         Route::post('/login', 'login');
         Route::post('/register', 'register');
         Route::get('/logout', 'logout')->middleware('auth:sanctum');
+        Route::get('/verifyEmail','verifyEmail')->name('verifyEmail')->middleware('signed');
     });
 });
 

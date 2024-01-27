@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerifyMail;
+use App\Jobs\ProcessVerifyEmail;
+use App\Jobs\SendMail;
+use Illuminate\Support\Facades\URL;
+use Inertia\Inertia;
 
 class AuthController extends Controller
 {
@@ -21,30 +27,26 @@ class AuthController extends Controller
     {
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-            return response()->json([
-                "message" => "User not found"
-            ], 404);
+            return Inertia::render('LoginForm', [
+                'error.email' => 'User not found'
+            ]);
         }
         if (!Hash::check($request->password, $user->password)) {
-            return response()->json([
-                "message" => "Password incorrect"
-            ], 401);
+            return Inertia::render('LoginForm', [
+                'error.password' => 'Password not match'
+            ]);
         }
         if (!$user->status) {
-            return response()->json([
-                "message" => "User not active"
-            ], 403);
+            return Inertia::render('LoginForm', [
+                'error.status' => 'User not verified'
+            ]);
         }
         $TOKEN_EXIST = PersonalAccessToken::where('tokenable_id', $user->id)->first();
         if ($TOKEN_EXIST) {
-            DB::table('personal_access_tokens')->where('tokenable_id', $user->id)->delete();
+            PersonalAccessTokens::where('tokenable_id', $user->id)->delete();
         }
         $token = $user->createToken('auth_token')->plainTextToken;
-        return response()->json([
-            "message" => "User logged",
-            "user" => $user,
-            "token" => $token
-        ], 200);
+        return Inertia::render('RegisterForm');
     }
 
     public function register(RegisterRequest $request)
@@ -53,21 +55,20 @@ class AuthController extends Controller
         $user->fill($request->all());
         // $user->password = Hash::make($request->password);
         $userExist = User::where('role_id', 1)->first();
-        if (!$userExist) {
-            $user->role_id = 1;
-            $user->status = false;
-            $user->save();
-            return response()->json([
-                "msg" => "Admin created",
-                "user" => $user
-            ], 200);
-        }
-        $user->role_id = 2;
+        $user->role_id = $userExist ? 2 : 1;
         $user->status = false;
+        $url = URL::temporarySignedRoute(
+            'verifyEmail',
+            now()->addMinutes(30),
+            ['id' => $user->id]
+        );
+        SendMail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(5));
         $user->save();
+
         return response()->json([
             "msg" => "User created",
-            "user" => $user
+            "user" => $user,
+            "url" => $url
         ], 200);
     }
 
@@ -76,6 +77,15 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
         return response()->json([
             "message" => "User logged out"
+        ], 200);
+    }
+    public function verifyEmail(Request $request)
+    {
+        $user = User::findOrFail($request->id);
+        $user->status = true;
+        $user->save();
+        return response()->json([
+            "message" => "User verified"
         ], 200);
     }
 }
