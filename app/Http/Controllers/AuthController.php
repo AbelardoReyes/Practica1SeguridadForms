@@ -27,8 +27,30 @@ use function Laravel\Prompts\error;
 class AuthController extends Controller
 {
 
-    public function login(LoginRequest $request)
+    public function validCaptcha(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'gRecaptchaResponse' => 'required|captcha'
+        ]);
+        if ($validator->fails()) {
+            return Redirect::route('login')->withErrors($validator->errors());
+        }
+    }
+
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+            'gRecaptchaResponse' => 'required'
+        ]);
+        $recaptcha = Http::post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
+            'response' => $request->gRecaptchaResponse
+        ]);
+        if ($validator->fails()) {
+            return Redirect::route('login')->withErrors($validator->errors());
+        }
         $user = User::where('email', $request->email)->first();
         if (!$user) {
             return Inertia::render('LoginForm', [
@@ -50,7 +72,7 @@ class AuthController extends Controller
             PersonalAccessTokens::where('tokenable_id', $user->id)->delete();
         }
         $token = $user->createToken('auth_token')->plainTextToken;
-        return Inertia::render('Home');
+        return Redirect::route('Home');
     }
 
     public function register(Request $request)

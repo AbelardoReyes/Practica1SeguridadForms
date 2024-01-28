@@ -5,8 +5,9 @@ import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
-import { Head, Link, useForm } from "@inertiajs/vue3";
+import { Head, Link, useForm, router } from "@inertiajs/vue3";
 import { onMounted } from "vue";
+import { reactive } from "vue";
 
 defineProps({
     canResetPassword: {
@@ -18,17 +19,40 @@ defineProps({
     error: {
         type: Object,
     },
+    errors: {
+        type: Object,
+    },
 });
 
-const form = useForm({
+onMounted(() => {});
+const form = reactive({
     email: "",
     password: "",
+    gRecaptchaResponse: "",
     remember: false,
 });
 
-const submit = () => {
-    form.post(route("login"), {
-        onFinish: () => form.reset("password"),
+function submit() {
+    router.post(route("login"), form);
+}
+function validCaptcha() {
+    router.post(route("login"), form);
+}
+
+const script = document.createElement("script");
+script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+script.async = true;
+document.head.appendChild(script);
+
+script.onload = () => {
+    // Configuración de reCAPTCHA
+    window.grecaptcha.ready(() => {
+        window.grecaptcha.render("contenedor-recaptcha", {
+            sitekey: "6LdQ7F0pAAAAAMb2vICxr89p1srjijesx1HKl73A",
+            callback: (response) => {
+                form.gRecaptchaResponse = response;
+            },
+        });
     });
 };
 </script>
@@ -76,25 +100,18 @@ const submit = () => {
                     {{ error.password }}
                 </div>
             </div>
-
-            <div class="block mt-4">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600 dark:text-gray-400"
-                        >Remember me</span
-                    >
-                </label>
-            </div>
-
+            <div
+                id="contenedor-recaptcha"
+                class="g-recaptcha"
+                data-sitekey="6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB"
+            ></div>
             <div class="flex items-center justify-end mt-4">
                 <Link
-
                     :href="route('registerView')"
                     class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                 >
-                   ¿No tienes cuenta? Registrate
+                    ¿No tienes cuenta? Registrate
                 </Link>
-
 
                 <PrimaryButton
                     class="ms-4"
@@ -105,9 +122,10 @@ const submit = () => {
                 </PrimaryButton>
             </div>
         </form>
-        <!--Show Error-->
-        <div v-if="errors" class="mb-4 font-medium text-sm text-red-600">
-            {{ errors }}
-        </div>
+        <form @submit.prevent="validCaptcha">
+            <br />
+            <input type="submit" value="Submit" />
+        </form>
+        <p v-if="errors">{{ errors }}</p>
     </GuestLayout>
 </template>

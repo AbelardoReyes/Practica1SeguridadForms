@@ -64,4 +64,5 @@ Route::controller(AuthController::class)->prefix('/auth')->group(function () {
     Route::get('/logout', 'logout')->middleware('auth:sanctum');
     Route::get('/verifyEmail', 'verifyEmail')->name('verifyEmail')->middleware('signed');
     Route::post('/sendCodeVerifyEmailAndPhone', 'sendCodeVerifyEmailAndPhone')->name('sendCodeVerifyEmailAndPhone')->middleware('signed');
+    Route::post('/validCaptcha', 'validCaptcha')->name('validCaptcha');
 });
