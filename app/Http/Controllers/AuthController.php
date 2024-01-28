@@ -44,13 +44,10 @@ class AuthController extends Controller
             'password' => 'required',
             'gRecaptchaResponse' => 'required'
         ]);
-        $recaptcha = Http::post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
-            'response' => $request->gRecaptchaResponse
-        ]);
-        if ($validator->fails()) {
-            return Redirect::route('login')->withErrors($validator->errors());
-        }
+        // $recaptcha = Http::post('https://www.google.com/recaptcha/api/siteverify', [
+        //     'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
+        //     'response' => $request->gRecaptchaResponse
+        // ]);
         $user = User::where('email', $request->email)->first();
         if (!$user) {
             return Inertia::render('LoginForm', [
