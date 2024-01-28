@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 
+use function Laravel\Prompts\error;
+
 class AuthController extends Controller
 {
 
@@ -115,14 +117,7 @@ class AuthController extends Controller
             now()->addMinutes(30),
             ['id' => $user->id]
         );
-        // Http::post('https://rest.nexmo.com/sms/json', [
-        //     'from' => "Abela-Corporation",
-        //     'text' => " Tu codigo de verificacion es: " . $nRandom,
-        //     'to' => '528714733996',
-        //     'api_key' => '22bd2a4a',
-        //     "api_secret" => 'KPOZLO3r34vSCZGw',
-        // ]);
-        ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(15));
+        ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
         return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
     }
 
@@ -134,10 +129,10 @@ class AuthController extends Controller
         }
         $user = User::find($request->id);
         if ($user->code_phone != $request->code_phone) {
-            return Inertia::render('CodeIncorrect');
+            return redirect()->back()->withErrors(['error.code_phone' => 'El codigo no coincide']);
         }
         $user->status = true;
         $user->save();
-        return Inertia::render('LoginForm');
+        return Redirect::route('login');
     }
 }

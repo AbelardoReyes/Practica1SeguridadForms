@@ -5,16 +5,16 @@ import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
-import { Head, Link, useForm } from "@inertiajs/vue3";
+import { Head, Link, router, useForm } from "@inertiajs/vue3";
 import { onMounted } from "vue";
+import { defineProps } from "vue";
+import { reactive } from "vue";
 
-defineProps({
+const PROPS = defineProps({
     canResetPassword: {
         type: Boolean,
     },
-    status: {
-        type: String,
-    },
+    status: false,
     error: {
         type: Object,
     },
@@ -26,43 +26,50 @@ defineProps({
     },
 });
 
-const form = useForm({
+const form = reactive({
     code_phone: "",
-    remember: false,
+    id: PROPS.user.id,
 });
-
-const submit = () => {
-    form.get(url, {
-        onFinish: () => form.reset("code_phone"),
-    });
-};
+function submit() {
+    router.post(PROPS.url, form);
+}
 </script>
 
 <template>
     <GuestLayout>
         <Head title="Log in" />
-{{ user }}
         <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
             {{ status }}
         </div>
-
+        <h4 style="color: white;">Recibiras un mensaje a tu whatsApp el cual debes ingresar aqui</h4>
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="code_phone" value="Codigo" />
 
                 <TextInput
-                    id="email"
-                    type="email"
+                    id="code_phone"
+                    type="number"
+                    maxlength="4"
                     class="mt-1 block w-full"
                     v-model="form.code_phone"
                     required
                     autofocus
-                    autocomplete="username"
+                    autocomplete="code_phone"
                 />
 
                 <div v-if="error" class="mb-4 font-medium text-sm text-red-600">
                     {{ error.code_phone }}
                 </div>
+            </div>
+            <div v-if="status">
+                <TextInput
+                    id="id"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="form.id"
+                    autofocus
+                    autocomplete="id"
+                />
             </div>
 
             <div class="flex items-center justify-end mt-4">
@@ -70,8 +77,7 @@ const submit = () => {
                     class="ms-4"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
-                >
-                    Log in
+                    >Enviar
                 </PrimaryButton>
             </div>
         </form>
