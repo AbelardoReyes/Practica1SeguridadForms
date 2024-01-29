@@ -98,7 +98,8 @@ script.onload = () => {
                     {{ error.password }}
                 </div>
             </div>
-            <div style="margin-left: 13%;margin-top: 5%;"
+            <div
+                style="margin-left: 13%; margin-top: 5%"
                 id="contenedor-recaptcha"
                 class="g-recaptcha"
                 data-sitekey="6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB"
@@ -120,9 +121,14 @@ script.onload = () => {
                 </PrimaryButton>
             </div>
         </form>
-        <p style="color:brown;" v-if="error">{{ error.gRecaptchaResponse }}</p>
-        <p style="color:brown;" v-if="errors">{{ errors.gRecaptchaResponse }}</p>
-        <p style="color:brown;" v-if="errors">{{ errors.status }}</p>
-
+        <p style="color: brown" v-if="error">{{ error.gRecaptchaResponse }}</p>
+        <p style="color: brown" v-if="errors">
+            {{ errors.gRecaptchaResponse }}
+        </p>
+        <p style="color: brown" v-if="errors">{{ errors.status }}</p>
+        <p style="color: brown" v-if="error">{{ error.PDO }}</p>
+        <p style="color: brown" v-if="error">{{ error.QueryE }}</p>
+        <p style="color: brown" v-if="error">{{ error.ValidationE }}</p>
+        <p style="color: brown" v-if="error">{{ error.Exception }}</p>
     </GuestLayout>
 </template>

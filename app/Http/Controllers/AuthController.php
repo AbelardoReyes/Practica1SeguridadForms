@@ -2,28 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
-use App\Models\PersonalAccessTokens;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\PersonalAccessToken;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyMail;
 use App\Jobs\ProcessVerifyEmail;
-use App\Jobs\ProcessSendSMS;
-use App\Jobs\ProcessFactorAuthSMS;
-use Illuminate\Database\Eloquent\Model;
+use Dotenv\Exception\ValidationException;
+use Exception;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use PDOException;
+
 use function Laravel\Prompts\error;
 
 class AuthController extends Controller
@@ -106,15 +100,25 @@ class AuthController extends Controller
                 );
                 return Inertia::location($url);
             }
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             Log::channel('slackerror')->error($e->getMessage());
             return Inertia::render('LoginForm', [
-                'error.email' => 'Credenciales Invalidas', 'error.password' => 'Credenciales Invalidas'
+                'error.PDO' => 'Error de Conexion'
             ]);
-        } catch (\Exception $e) {
+        } catch (QueryException $e) {
             Log::channel('slackerror')->error($e->getMessage());
             return Inertia::render('LoginForm', [
-                'error.email' => 'Credenciales Invalidas', 'error.password' => 'Credenciales Invalidas'
+                'error.QE' => 'Datos Invalidos'
+            ]);
+        } catch (ValidationException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.VE' => 'Datos Invalidos'
+            ]);
+        } catch (Exception $e) {
+            Log::channel('slackerror')->critical($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.E' => 'Ocurrio un error'
             ]);
         }
     }
@@ -176,10 +180,25 @@ class AuthController extends Controller
             // Envia el correo de verificación
             ProcessVerifyEmail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(10));
             return Redirect::route('login');
-        } catch (\Exception $e) {
+        } catch (PDOException $e) {
             Log::channel('slackerror')->error($e->getMessage());
-            return Inertia::render('RegisterForm', [
-                'errors' => $e->getMessage()
+            return Inertia::render('LoginForm', [
+                'error.PDO' => 'Error de Conexion'
+            ]);
+        } catch (QueryException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.QueryE' => 'Datos Invalidos'
+            ]);
+        } catch (ValidationException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.ValidationE' => 'Datos Invalidos'
+            ]);
+        } catch (Exception $e) {
+            Log::channel('slackerror')->critical($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.Exception' => 'Ocurrio un error'
             ]);
         }
     }
@@ -198,9 +217,9 @@ class AuthController extends Controller
             $request->session()->regenerate();
             return Redirect::route('login');
         } catch (\Exception $e) {
-            Log::channel('slackerror')->error($e->getMessage());
+            Log::channel('slackerror')->critical($e->getMessage());
             return Inertia::render('LoginForm', [
-                'errors' => $e->getMessage()
+                'error.Exception' => $e->getMessage()
             ]);
         }
     }

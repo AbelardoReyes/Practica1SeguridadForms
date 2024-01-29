@@ -10,6 +10,9 @@ defineProps({
     errors: {
         type: Object,
     },
+    error: {
+        type: Object,
+    },
 });
 const form = useForm({
     name: "",
@@ -55,7 +58,6 @@ const submit = () => {
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.last_name"
-
                     autofocus
                     autocomplete="last_name"
                 />
@@ -123,7 +125,10 @@ const submit = () => {
                     autocomplete="new-password"
                 />
 
-                <InputError class="mt-2" :message="form.errors.password_confirmation" />
+                <InputError
+                    class="mt-2"
+                    :message="form.errors.password_confirmation"
+                />
             </div>
 
             <div class="flex items-center justify-end mt-4">

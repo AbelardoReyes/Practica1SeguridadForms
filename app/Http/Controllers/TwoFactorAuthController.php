@@ -18,11 +18,16 @@ use App\Mail\VerifyMail;
 use App\Jobs\ProcessVerifyEmail;
 use App\Jobs\ProcessSendSMS;
 use App\Jobs\ProcessFactorAuthSMS;
+use Dotenv\Exception\ValidationException;
+use Exception;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use PDOException;
+
 use function Laravel\Prompts\error;
 
 class TwoFactorAuthController extends Controller
@@ -36,20 +41,42 @@ class TwoFactorAuthController extends Controller
      */
     public function twoFactorAuth(Request $request)
     {
-        if (!$request->hasValidSignature()) {
-            abort(401);
+        try {
+            if (!$request->hasValidSignature()) {
+                abort(401);
+            }
+            $nRandom = rand(1000, 9999);
+            $user = User::find($request->id);
+            $user->code_phone = $nRandom;
+            $url = URL::temporarySignedRoute(
+                'verifyTwoFactorAuth',
+                now()->addMinutes(30),
+                ['id' => $user->id]
+            );
+            $user->save();
+            ProcessFactorAuthSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('twoFactorAuth')->delay(now()->addseconds(30));
+            return Inertia::render('twoFactorAuth', ['user' => $user, 'url' => $url]);
+        } catch (PDOException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.PDO' => 'Error de Conexion'
+            ]);
+        } catch (QueryException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.QueryE' => 'Datos Invalidos'
+            ]);
+        } catch (ValidationException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.ValidationE' => 'Datos Invalidos'
+            ]);
+        } catch (Exception $e) {
+            Log::channel('slackerror')->critical($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.Exception' => 'Ocurrio un error'
+            ]);
         }
-        $nRandom = rand(1000, 9999);
-        $user = User::find($request->id);
-        $user->code_phone = $nRandom;
-        $url = URL::temporarySignedRoute(
-            'verifyTwoFactorAuth',
-            now()->addMinutes(30),
-            ['id' => $user->id]
-        );
-        $user->save();
-        ProcessFactorAuthSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('twoFactorAuth')->delay(now()->addseconds(30));
-        return Inertia::render('twoFactorAuth', ['user' => $user, 'url' => $url]);
     }
     /**
      * Verifica el codigo de verificación y realiza el inicio de sesión
@@ -60,19 +87,41 @@ class TwoFactorAuthController extends Controller
      */
     public function verifyTwoFactorAuth(Request $request)
     {
-        if (!$request->hasValidSignature()) {
-            abort(401);
-        }
-        $user = User::find($request->id);
-        if ($user->code_phone != $request->code_phone) {
-            return Redirect::back()->withErrors('credenciales incorrectas, se te enviara otro codigo');
-        }
-        // Crea las credenciales para iniciar sesión
-        $credentials = $request->only('email', 'password');
-        if (Auth::attempt($credentials)) {
-            $request->session()->put('user', $user);
-            $request->session()->regenerate();
-            return Redirect::route('Home');
+        try {
+            if (!$request->hasValidSignature()) {
+                abort(401);
+            }
+            $user = User::find($request->id);
+            if ($user->code_phone != $request->code_phone) {
+                return Redirect::back()->withErrors('credenciales incorrectas, se te enviara otro codigo');
+            }
+            // Crea las credenciales para iniciar sesión
+            $credentials = $request->only('email', 'password');
+            if (Auth::attempt($credentials)) {
+                $request->session()->put('user', $user);
+                $request->session()->regenerate();
+                return Redirect::route('Home');
+            }
+        } catch (PDOException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.PDO' => 'Error de Conexion'
+            ]);
+        } catch (QueryException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.QueryE' => 'Datos Invalidos'
+            ]);
+        } catch (ValidationException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.ValidationE' => 'Datos Invalidos'
+            ]);
+        } catch (Exception $e) {
+            Log::channel('slackerror')->critical($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.Exception' => 'Ocurrio un error'
+            ]);
         }
     }
 }
