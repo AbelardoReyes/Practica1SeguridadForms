@@ -52,23 +52,11 @@ class AuthController extends Controller
                     'errors' => $validator->errors()
                 ]);
             }
-            // Verifica el captcha haciendo una solicitud a la API de Google
-            $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
-                'response' => $request->gRecaptchaResponse
-            ]);
-            // Si el captcha es invalido, retorna el formulario de inicio de sesion con el error
-            if (!$recaptcha->json()['success']) {
-                Log::channel('slackinfo')->error('Intento de inicio de sesion con captcha invalido');
-                return Inertia::render('LoginForm', [
-                    'error.gRecaptchaResponse' => 'Captcha Invalido'
-                ]);
-            }
             // Busca el usuario en la base de datos por su email y verifica que este activo
             $user = User::where('email', $request->email)->where('status', 1)->first();
             if (!$user) {
                 return Inertia::render('LoginForm', [
-                    'error.email' => 'Credenciales Invalidas', 'errors.status' => 'Puede que su usuario no este verificado'
+                    'error.email' => 'Credenciales Invalidas', 'errors.status' => 'Puede que su usuario no este verificado',
                 ]);
             }
             // Verifica que la contraseña sea correcta
@@ -77,6 +65,19 @@ class AuthController extends Controller
                     'error.password' => 'Credenciales Invalidas'
                 ]);
             }
+            // Verifica el captcha haciendo una solicitud a la API de Google
+            $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
+                'response' => $request->gRecaptchaResponse
+            ]);
+            // Si el captcha es invalido, retorna el formulario de inicio de sesion con el error
+            if (!$recaptcha->json()['success']) {
+                Log::channel('slackinfo')->warning('Intento de inicio de sesion con captcha invalido');
+                return Inertia::render('LoginForm', [
+                    'error.gRecaptchaResponse' => 'Captcha Invalido'
+                ]);
+            }
+
             // Si el usuario no es administrador, inicia sesion directamente
             if ($user->role_id == 2) {
                 $credentials = $request->only('email', 'password');
@@ -92,7 +93,7 @@ class AuthController extends Controller
             }
             // Si el usuario es administrador, envia un codigo de verificacion por SMS
             else {
-                Log::channel('slackinfo')->info('Intento de inicio de sesion de ' . $user->email . ' como administrador');
+                Log::channel('slackinfo')->warning('Intento de inicio de sesion de ' . $user->email . ' como administrador');
                 $url = URL::temporarySignedRoute(
                     'twoFactorAuth',
                     now()->addMinutes(30),
@@ -140,6 +141,7 @@ class AuthController extends Controller
                 'email' => 'required|email|unique:users',
                 'password' => 'required',
                 'password_confirmation' => 'required',
+                'gRecaptchaResponse' => 'required'
             ];
             $messages = [
                 'email.required' => 'El email es requerido',
@@ -150,6 +152,7 @@ class AuthController extends Controller
                 'last_name.required' => 'El apellido es requerido',
                 'phone.required' => 'El numero de telefono es requerido',
                 'password_confirmation.required' => 'La confirmación de la contraseña es requerida',
+                'gRecaptchaResponse.required' => 'El captcha es requerido'
             ];
             // Valida los datos recibidos
             $validator = Validator::make($request->all(), $rules, $messages);
@@ -157,6 +160,18 @@ class AuthController extends Controller
             if ($validator->fails()) {
                 return Inertia::render('RegisterForm', [
                     'errors' => $validator->errors()
+                ]);
+            }
+            // Verifica el captcha haciendo una solicitud a la API de Google
+            $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
+                'response' => $request->gRecaptchaResponse
+            ]);
+            // Si el captcha es invalido, retorna el formulario de inicio de sesion con el error
+            if (!$recaptcha->json()['success']) {
+                Log::channel('slackinfo')->warning('Intento de registro con captcha invalido');
+                return Inertia::render('RegisterForm', [
+                    'error.gRecaptchaResponse' => 'Captcha Invalido'
                 ]);
             }
             // Verifica que las contraseñas coincidan

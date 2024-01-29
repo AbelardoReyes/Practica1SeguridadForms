@@ -31,13 +31,14 @@ class ProcessSendSMS implements ShouldQueue
     public function handle(): void
     {
         try {
-            $SMS = Http::withBasicAuth('ACd8e2ad424b562a15ce13ac163a54bce7', '8f59cf71ab57da1742feb7179f55247b')
+            Http::withBasicAuth(env('SID'), env('TWILIO_AUTH_TOKEN'))
                 ->asForm()
-                ->post('https://api.twilio.com/2010-04-01/Accounts/ACd8e2ad424b562a15ce13ac163a54bce7/Messages.json', [
+                ->post(env('URL_TWILIO'), [
                     'To' => "whatsapp:+521" . $this->user->phone,
                     'From' => "whatsapp:+14155238886",
                     'Body' => "Tu código de verificación es: " . $this->nRandom
                 ]);
+            Log::channel('slackinfo')->warning('Se envio un SMS de verificación a ' . $this->user->email);
         } catch (\Throwable $th) {
             Log::channel('slackerror')->error($th->getMessage());
         }

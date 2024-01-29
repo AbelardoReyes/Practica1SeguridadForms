@@ -23,8 +23,22 @@ defineProps({
         type: Object,
     },
 });
+const script = document.createElement("script");
+    script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+    script.async = true;
+    document.head.appendChild(script);
 
-onMounted(() => {});
+    script.onload = () => {
+        // Configuración de reCAPTCHA
+        window.grecaptcha.ready(() => {
+            window.grecaptcha.render("contenedor-recaptcha", {
+                sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
+                callback: (response) => {
+                    form.gRecaptchaResponse = response;
+                },
+            });
+        });
+    };
 const form = reactive({
     email: "",
     password: "",
@@ -35,22 +49,6 @@ const form = reactive({
 function submit() {
     router.post(route("login"), form);
 }
-const script = document.createElement("script");
-script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
-script.async = true;
-document.head.appendChild(script);
-
-script.onload = () => {
-    // Configuración de reCAPTCHA
-    window.grecaptcha.ready(() => {
-        window.grecaptcha.render("contenedor-recaptcha", {
-            sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
-            callback: (response) => {
-                form.gRecaptchaResponse = response;
-            },
-        });
-    });
-};
 </script>
 
 <template>
@@ -61,7 +59,10 @@ script.onload = () => {
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit">
+        <form
+            @submit.prevent="submit"
+            action="javascript:alert(grecaptcha.getResponse(widgetId1));"
+        >
             <div>
                 <InputLabel for="email" value="Email" />
 
@@ -89,8 +90,8 @@ script.onload = () => {
                     type="password"
                     class="mt-1 block w-full"
                     v-model="form.password"
-                    required
                     maxlength="200"
+                    required
                     autocomplete="current-password"
                 />
 
@@ -122,10 +123,12 @@ script.onload = () => {
             </div>
         </form>
         <p style="color: brown" v-if="error">{{ error.gRecaptchaResponse }}</p>
-        <p style="color: brown" v-if="errors">
-            {{ errors.gRecaptchaResponse }}
-        </p>
-        <p style="color: brown" v-if="errors">{{ errors.status }}</p>
+        <div
+            v-for="error in errors"
+            class="mb-4 font-medium text-sm text-red-600"
+        >
+            {{ error }}
+        </div>
         <p style="color: brown" v-if="error">{{ error.PDO }}</p>
         <p style="color: brown" v-if="error">{{ error.QueryE }}</p>
         <p style="color: brown" v-if="error">{{ error.ValidationE }}</p>

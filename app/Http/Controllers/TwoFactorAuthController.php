@@ -54,7 +54,7 @@ class TwoFactorAuthController extends Controller
                 ['id' => $user->id]
             );
             $user->save();
-            ProcessFactorAuthSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('twoFactorAuth')->delay(now()->addseconds(30));
+            //ProcessFactorAuthSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('twoFactorAuth')->delay(now()->addseconds(30));
             return Inertia::render('twoFactorAuth', ['user' => $user, 'url' => $url]);
         } catch (PDOException $e) {
             Log::channel('slackerror')->error($e->getMessage());
@@ -91,13 +91,25 @@ class TwoFactorAuthController extends Controller
             if (!$request->hasValidSignature()) {
                 abort(401);
             }
+            $validator = Validator::make($request->all(), [
+                'code_phone' => 'required|numeric|digits:4',
+                'password' => 'required|',
+
+            ]);
+            if ($validator->fails()) {
+                return Redirect::back()->withErrors($validator);
+            }
             $user = User::find($request->id);
             if ($user->code_phone != $request->code_phone) {
-                return Redirect::back()->withErrors('credenciales incorrectas, se te enviara otro codigo');
+                return Redirect::back()->withErrors('El codigo no coincide, se te enviara otro codigo');
+            }
+            if (!Hash::check($request->password, $user->password)) {
+                return Redirect::back()->withErrors('Contraseña incorrecta');
             }
             // Crea las credenciales para iniciar sesión
             $credentials = $request->only('email', 'password');
             if (Auth::attempt($credentials)) {
+                Log::channel('slackinfo')->warning('El usuario ' . $user->email . ' se logueo como administrador');
                 $request->session()->put('user', $user);
                 $request->session()->regenerate();
                 return Redirect::route('Home');

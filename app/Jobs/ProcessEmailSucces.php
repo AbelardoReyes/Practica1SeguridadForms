@@ -9,31 +9,29 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Models\User;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyMail;
+use App\Mail\SendEmailSucces;
 use Illuminate\Support\Facades\Log;
 
-class ProcessVerifyEmail implements ShouldQueue
+class ProcessEmailSucces implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     protected $user;
-    protected $url;
     /**
      * Create a new job instance.
      */
-    public function __construct(User $user, $url)
+    public function __construct(User $user)
     {
         $this->user = $user;
-        $this->url = $url;
     }
 
     /**
-     * Envia un correo de verificación al usuario
+     * Execute the job.
      */
     public function handle(): void
     {
         try {
-            Mail::to($this->user->email)->send(new VerifyMail($this->user, $this->url));
-            Log::channel('slackinfo')->warning('Se envio un correo de verificación a ' . $this->user->email);
+            Mail::to($this->user->email)->send(new SendEmailSucces($this->user));
+            Log::channel('slackinfo')->info('Esta cuenta ha sido activada' . $this->user->email);
         } catch (\Throwable $th) {
             Log::channel('slackerror')->critical($th->getMessage());
         }

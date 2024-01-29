@@ -27,6 +27,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use PDOException;
+use App\Jobs\ProcessEmailSucces;
 
 use function Laravel\Prompts\error;
 
@@ -35,7 +36,7 @@ class VerifyEmailAndPhoneController extends Controller
 
     /**
      * Verifica el email del usuario.
-     * Crear un codigo de verificación y lo envia al usuario por SMS
+     * Crea un codigo de verificación y lo envia al usuario por SMS
      *
      *
      * @param  \Illuminate\Http\Request  $request
@@ -58,7 +59,7 @@ class VerifyEmailAndPhoneController extends Controller
                 now()->addMinutes(30),
                 ['id' => $user->id]
             );
-            // ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
+            //ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
             return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
         } catch (PDOException $e) {
             Log::channel('slackerror')->error($e->getMessage());
@@ -105,6 +106,10 @@ class VerifyEmailAndPhoneController extends Controller
             }
             $user->status = true;
             $user->save();
+            if ($user->role_id == 1) {
+                Log::channel('slackinfo')->warning('Se activo la cuenta del usuario administrador' . $user->name);
+            }
+            ProcessEmailSucces::dispatch($user)->onConnection('database')->onQueue('sendEmailSucces')->delay(now()->addseconds(30));
             return Redirect::route('login');
         } catch (PDOException $e) {
             Log::channel('slackerror')->error($e->getMessage());

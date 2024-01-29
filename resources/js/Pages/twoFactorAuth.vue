@@ -24,6 +24,9 @@ const PROPS = defineProps({
     url: {
         type: String,
     },
+    errors: {
+        type: Object,
+    },
 });
 const form = reactive({
     code_phone: "",
@@ -32,7 +35,7 @@ const form = reactive({
     id: PROPS.user.id,
 });
 function submit() {
-        router.post(PROPS.url, form);
+    router.post(PROPS.url, form);
 }
 </script>
 
@@ -91,7 +94,6 @@ function submit() {
                     maxlength="200"
                     class="mt-1 block w-full"
                     v-model="form.password"
-                    required
                     autocomplete="Contraseña"
                 />
 
@@ -122,5 +124,6 @@ function submit() {
         <p v-if="PROPS.errors" style="color: brown">
             {{ PROPS.errors[0] }}
         </p>
+        {{ error }}
     </GuestLayout>
 </template>

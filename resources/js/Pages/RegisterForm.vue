@@ -19,10 +19,26 @@ const form = useForm({
     last_name: "",
     phone: "",
     email: "",
+    gRecaptchaResponse: "",
     password: "",
     password_confirmation: "",
 });
+const script = document.createElement("script");
+script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+script.async = true;
+document.head.appendChild(script);
 
+script.onload = () => {
+    // Configuración de reCAPTCHA
+    window.grecaptcha.ready(() => {
+        window.grecaptcha.render("contenedor-recaptcha", {
+            sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
+            callback: (response) => {
+                form.gRecaptchaResponse = response;
+            },
+        });
+    });
+};
 const submit = () => {
     form.post(route("register"), {
         onFinish: () => form.reset("password", "password_confirmation"),
@@ -130,6 +146,13 @@ const submit = () => {
                     :message="form.errors.password_confirmation"
                 />
             </div>
+            <div
+                style="margin-left: 13%; margin-top: 5%"
+                id="contenedor-recaptcha"
+                class="g-recaptcha"
+                data-sitekey="6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB"
+            ></div>
+            <p style="color: brown;margin-left: 35%; margin-top: 5%" v-if="error">{{ error.gRecaptchaResponse }}</p>
 
             <div class="flex items-center justify-end mt-4">
                 <!-- <Link

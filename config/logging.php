@@ -79,13 +79,6 @@ return [
             'emoji' => ':boom:',
             'level' => 'info',
         ],
-        'slackerror' => [
-            'driver' => 'slack',
-            'url' => env('LOG_SLACK_WEBHOOK_URL'),
-            'username' => 'Abelardo',
-            'emoji' => ':boom:',
-            'level' => 'error',
-        ],
 
 
         'papertrail' => [
