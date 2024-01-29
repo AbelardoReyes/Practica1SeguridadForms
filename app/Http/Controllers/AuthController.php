@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 use function Laravel\Prompts\error;
 
@@ -44,6 +45,7 @@ class AuthController extends Controller
             'password' => 'required',
             'gRecaptchaResponse' => 'required'
         ]);
+        $credentials = $request->only('email', 'password');
         // $recaptcha = Http::post('https://www.google.com/recaptcha/api/siteverify', [
         //     'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
         //     'response' => $request->gRecaptchaResponse
@@ -64,12 +66,12 @@ class AuthController extends Controller
                 'error.status' => 'User not verified'
             ]);
         }
-        $TOKEN_EXIST = PersonalAccessToken::where('tokenable_id', $user->id)->first();
-        if ($TOKEN_EXIST) {
-            PersonalAccessTokens::where('tokenable_id', $user->id)->delete();
+        if (Auth::attempt($credentials)) {
+            $request->session()->put('user', $user);
+            $request->session()->regenerate();
         }
-        $token = $user->createToken('auth_token')->plainTextToken;
         return Redirect::route('Home');
+        // $token = $user->createToken('auth_token')->plainTextToken;
     }
 
     public function register(Request $request)
@@ -117,11 +119,12 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json([
-            "message" => "User logged out"
-        ], 200);
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerate();
+        return Redirect::route('login');
     }
+
     public function verifyEmail(Request $request)
     {
         if (!$request->hasValidSignature()) {

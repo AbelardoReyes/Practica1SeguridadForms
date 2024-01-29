@@ -51,8 +51,11 @@ Route::prefix('auth')->group(function () {
         return Inertia::render('VerifyEmailForm');
     })->name('verifyEmailView');
     Route::get('/Home', function () {
-        return Inertia::render('Home');
-    })->name('Home');
+        $user = session('user');
+        return Inertia::render('Home', [
+            'user' => $user
+        ]);
+    })->name('Home')->middleware('auth');
 });
 
 require __DIR__ . '/auth.php';
