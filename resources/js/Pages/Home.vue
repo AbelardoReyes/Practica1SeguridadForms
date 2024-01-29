@@ -25,7 +25,21 @@ function logout() {
             <button type="submit" class="btnLogout">Cerrar Sesion</button>
         </form>
     </div>
-    <div></div>
+    <div>
+        <div class="dashboard role-1" v-if="PROPS.user.role_id == 1">
+            <h2>Bienvenido al Panel de Control</h2>
+            <p>¡Hola, Administrador!</p>
+
+            <a href="#" class="admin-button">Panel de Administrador</a>
+        </div>
+
+        <div class="dashboard role-2" v-if="PROPS.user.role_id == 2">
+            <h2>Bienvenido al Panel de Control</h2>
+            <p>¡Hola, Usuario!</p>
+
+            <a href="#" class="user-button">Panel de Usuario</a>
+        </div>
+    </div>
 </template>
 
 <style scoped>
@@ -48,7 +62,7 @@ body {
     font-family: sans-serif;
 }
 .btnLogout {
-    background-color:darkcyan;
+    background-color: darkcyan;
     border: none;
     border-radius: 10px;
     color: white;
@@ -62,4 +76,29 @@ body {
     background-color: darkturquoise;
     color: black;
 }
+
+.dashboard {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .admin-button, .user-button {
+      display: none;
+      padding: 10px;
+      background-color: #3498db;
+      color: #fff;
+      text-decoration: none;
+      margin-right: 10px;
+    }
+
+    .role-1 .admin-button {
+      display: inline-block;
+    }
+
+    .role-2 .user-button {
+      display: inline-block;
+    }
 </style>
