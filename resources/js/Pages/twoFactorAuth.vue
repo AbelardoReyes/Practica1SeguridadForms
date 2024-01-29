@@ -25,7 +25,6 @@ const PROPS = defineProps({
         type: String,
     },
 });
-
 const form = reactive({
     code_phone: "",
     email: PROPS.user.email,
@@ -33,21 +32,21 @@ const form = reactive({
     id: PROPS.user.id,
 });
 function submit() {
-    router.post(PROPS.url, form);
+        router.post(PROPS.url, form);
 }
 </script>
 
 <template>
-    {{ PROPS.url }}
-    {{ PROPS.user}}
-    {{ PROPS.error }}
     <GuestLayout>
         <Head title="Log in" />
         <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
             {{ status }}
         </div>
-        <h4 style="color: white;">Recibiras un mensaje a tu whatsApp el cual debes ingresar aqui para iniciar Sesion</h4>
-        <br>
+        <h4 style="color: white">
+            Recibiras un mensaje a tu whatsApp con un codigo, el cual debes
+            ingresar aqui para iniciar Sesion
+        </h4>
+        <br />
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="code_phone" value="Codigo" />
@@ -55,17 +54,13 @@ function submit() {
                 <TextInput
                     id="code_phone"
                     type="number"
-                    maxlength="4"
+                    max="9999"
                     class="mt-1 block w-full"
                     v-model="form.code_phone"
                     required
                     autofocus
                     autocomplete="code_phone"
                 />
-
-                <div v-if="error" class="mb-4 font-medium text-sm text-red-600">
-                    {{ error.code_phone }}
-                </div>
             </div>
             <div hidden="true">
                 <InputLabel for="email" value="Email" />
@@ -73,7 +68,6 @@ function submit() {
                 <TextInput
                     id="email"
                     type="email"
-                    maxlength="4"
                     class="mt-1 block w-full"
                     v-model="form.email"
                     required
@@ -86,15 +80,18 @@ function submit() {
                 </div>
             </div>
             <div>
-                <InputLabel for="password" value="Ingresa tu contraseña nuevamente" />
+                <InputLabel
+                    for="password"
+                    value="Ingresa tu contraseña nuevamente"
+                />
 
                 <TextInput
                     id="password"
                     type="password"
-                    maxlength="4"
+                    maxlength="200"
                     class="mt-1 block w-full"
                     v-model="form.password"
-                    autofocus
+                    required
                     autocomplete="Contraseña"
                 />
 
@@ -122,9 +119,8 @@ function submit() {
                 </PrimaryButton>
             </div>
         </form>
-        <!--Show Error-->
-        <div v-if="errors" class="mb-4 font-medium text-sm text-red-600">
-            {{ errors }}
-        </div>
+        <p v-if="PROPS.errors" style="color: brown">
+            {{ PROPS.errors[0] }}
+        </p>
     </GuestLayout>
 </template>

@@ -23,54 +23,73 @@ use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
-
 use function Laravel\Prompts\error;
 
 class AuthController extends Controller
 {
-
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required',
-            'gRecaptchaResponse' => 'required'
-        ]);
-        // $recaptcha = Http::post('https://www.google.com/recaptcha/api/siteverify', [
-        //     'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
-        //     'response' => $request->gRecaptchaResponse
-        // ]);
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return Inertia::render('LoginForm', [
-                'error.email' => 'User not found'
-            ]);
-        }
-        if (!Hash::check($request->password, $user->password)) {
-            return Inertia::render('LoginForm', [
-                'error.password' => 'Password not match'
-            ]);
-        }
-        if (!$user->status) {
-            return Inertia::render('LoginForm', [
-                'error.status' => 'User not verified'
-            ]);
-        }
-
-        if ($user->role_id == 2) {
-            $credentials = $request->only('email', 'password');
-            if (Auth::attempt($credentials)) {
-                $request->session()->put('user', $user);
-                $request->session()->regenerate();
+        try {
+            $rules = [
+                'email' => 'required|email',
+                'password' => 'required',
+                'gRecaptchaResponse' => 'required'
+            ];
+            $messages = [
+                'email.required' => 'El email es requerido',
+                'email.email' => 'El email no es valido',
+                'password.required' => 'La contraseña es requerida',
+                'gRecaptchaResponse.required' => 'El captcha es requerido'
+            ];
+            $validator = Validator::make($request->all(), $rules, $messages);
+            if ($validator->fails()) {
+                Log::error($validator->errors());
+                return Inertia::render('LoginForm', [
+                    'errors' => $validator->errors()
+                ]);
             }
-            return Redirect::route('Home');
-        } else {
-            $url = URL::temporarySignedRoute(
-                'twoFactorAuth',
-                now()->addMinutes(30),
-                ['id' => $user->id]
-            );
-            return Inertia::location($url);
+            // $recaptcha = Http::post('https://www.google.com/recaptcha/api/siteverify', [
+            //     'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
+            //     'response' => $request->gRecaptchaResponse
+            // ]);
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                Log::error('User not found');
+                return Inertia::render('LoginForm', [
+                    'error.email' => 'Credenciales Invalidas'
+                ]);
+            }
+            if (!Hash::check($request->password, $user->password)) {
+                return Inertia::render('LoginForm', [
+                    'error.password' => 'Credenciales Invalidas'
+                ]);
+            }
+            if (!$user->status) {
+                return Inertia::render('LoginForm', [
+                    'errors.status' => 'Usuario no verificado'
+                ]);
+            }
+
+            if ($user->role_id == 2) {
+                $credentials = $request->only('email', 'password');
+                if (Auth::attempt($credentials)) {
+                    $request->session()->put('user', $user);
+                    $request->session()->regenerate();
+                }
+                return Redirect::route('Home');
+            } else {
+                $url = URL::temporarySignedRoute(
+                    'twoFactorAuth',
+                    now()->addMinutes(30),
+                    ['id' => $user->id]
+                );
+                return Inertia::location($url);
+            }
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return Inertia::render('LoginForm', [
+                'error' => 'Algo salio mal'
+            ]);
         }
     }
 
@@ -79,7 +98,7 @@ class AuthController extends Controller
         $rules = [
             'name' => 'required',
             'last_name' => 'required',
-            'phone' => 'required',
+            'phone' => 'required|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required',
             'password_confirmation' => 'required',
@@ -114,38 +133,6 @@ class AuthController extends Controller
             ['id' => $user->id]
         );
         ProcessVerifyEmail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(10));
-        return Inertia::render('LoginForm');
-    }
-
-    public function verifyEmail(Request $request)
-    {
-        if (!$request->hasValidSignature()) {
-            abort(401);
-        }
-        $nRandom = rand(1000, 9999);
-        $user = User::find($request->id);
-        $user->code_phone = $nRandom;
-        $user->save();
-        $url = URL::temporarySignedRoute(
-            'sendCodeVerifyEmailAndPhone',
-            now()->addMinutes(30),
-            ['id' => $user->id]
-        );
-        ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
-        return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
-    }
-
-    public function sendCodeVerifyEmailAndPhone(Request $request)
-    {
-        if (!$request->hasValidSignature()) {
-            abort(401);
-        }
-        $user = User::find($request->id);
-        if ($user->code_phone != $request->code_phone) {
-            return redirect()->back()->withErrors(['error.code_phone' => 'El codigo no coincide']);
-        }
-        $user->status = true;
-        $user->save();
         return Redirect::route('login');
     }
 
@@ -157,37 +144,4 @@ class AuthController extends Controller
         return Redirect::route('login');
     }
 
-    public function twoFactorAuth(Request $request)
-    {
-        if (!$request->hasValidSignature()) {
-            abort(401);
-        }
-        $nRandom = rand(1000, 9999);
-        $user = User::find($request->id);
-        $user->code_phone = $nRandom;
-        $url = URL::temporarySignedRoute(
-            'verifyTwoFactorAuth',
-            now()->addMinutes(30),
-            ['id' => $user->id]
-        );
-        $user->save();
-        // ProcessFactorAuthSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('twoFactorAuth')->delay(now()->addseconds(30));
-        return Inertia::render('twoFactorAuth', ['user' => $user, 'url' => $url]);
-    }
-    public function verifyTwoFactorAuth(Request $request)
-    {
-        if (!$request->hasValidSignature()) {
-            abort(401);
-        }
-        $user = User::find($request->id);
-        if ($user->code_phone != $request->code_phone) {
-            return redirect()->back()->withErrors(['error.code_phone' => 'El codigo no coincide']);
-        }
-        $credentials = $request->only('email', 'password');
-        if (Auth::attempt($credentials)) {
-            $request->session()->put('user', $user);
-            $request->session()->regenerate();
-            return Redirect::route('Home');
-        }
-    }
 }

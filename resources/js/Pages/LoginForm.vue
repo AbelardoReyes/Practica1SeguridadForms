@@ -76,6 +76,7 @@ script.onload = () => {
                     v-model="form.email"
                     required
                     autofocus
+                    maxlength="255"
                     autocomplete="username"
                 />
 
@@ -93,6 +94,7 @@ script.onload = () => {
                     class="mt-1 block w-full"
                     v-model="form.password"
                     required
+                    maxlength="200"
                     autocomplete="current-password"
                 />
 
@@ -100,7 +102,7 @@ script.onload = () => {
                     {{ error.password }}
                 </div>
             </div>
-            <div
+            <div style="margin-left: 13%;margin-top: 5%;"
                 id="contenedor-recaptcha"
                 class="g-recaptcha"
                 data-sitekey="6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB"
@@ -118,14 +120,12 @@ script.onload = () => {
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Log in
+                    Iniciar Sesión
                 </PrimaryButton>
             </div>
         </form>
-        <form @submit.prevent="validCaptcha">
-            <br />
-            <input type="submit" value="Submit" />
-        </form>
-        <p v-if="errors">{{ errors }}</p>
+        <p style="color:brown;" v-if="errors">{{ errors.gRecaptchaResponse }}</p>
+        <p style="color:brown;" v-if="errors">{{ errors.status }}</p>
+
     </GuestLayout>
 </template>

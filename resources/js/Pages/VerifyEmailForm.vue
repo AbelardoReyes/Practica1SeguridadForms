@@ -24,6 +24,9 @@ const PROPS = defineProps({
     url: {
         type: String,
     },
+    errors: {
+        type: Object,
+    },
 });
 
 const form = reactive({
@@ -41,7 +44,9 @@ function submit() {
         <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
             {{ status }}
         </div>
-        <h4 style="color: white;">Recibiras un mensaje a tu whatsApp el cual debes ingresar aqui</h4>
+        <h4 style="color: white">
+            Recibiras un mensaje a tu whatsApp con un codigo, el cual debes ingresar aqui
+        </h4>
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="code_phone" value="Codigo" />
@@ -49,17 +54,13 @@ function submit() {
                 <TextInput
                     id="code_phone"
                     type="number"
-                    maxlength="4"
                     class="mt-1 block w-full"
                     v-model="form.code_phone"
                     required
                     autofocus
+                    max="9999"
                     autocomplete="code_phone"
                 />
-
-                <div v-if="error" class="mb-4 font-medium text-sm text-red-600">
-                    {{ error.code_phone }}
-                </div>
             </div>
             <div v-if="status">
                 <TextInput
@@ -67,11 +68,12 @@ function submit() {
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.id"
-                    autofocus
                     autocomplete="id"
                 />
             </div>
-
+            <p v-if="PROPS.errors" style="color: brown">
+                {{ PROPS.errors[0] }}
+            </p>
             <div class="flex items-center justify-end mt-4">
                 <PrimaryButton
                     class="ms-4"
@@ -82,8 +84,5 @@ function submit() {
             </div>
         </form>
         <!--Show Error-->
-        <div v-if="errors" class="mb-4 font-medium text-sm text-red-600">
-            {{ errors }}
-        </div>
     </GuestLayout>
 </template>
