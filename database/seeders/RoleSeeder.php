@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Models\Role;
 
 class RoleSeeder extends Seeder
 {
@@ -15,8 +16,12 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('roles')->insert([
-            'name' => 'admin',
-        ]);
+        $role = new Role();
+        $role->name = 'admin';
+        $role->save();
+
+        $role = new Role();
+        $role->name = 'user';
+        $role->save();
     }
 }
