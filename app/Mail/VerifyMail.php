@@ -35,7 +35,8 @@ class VerifyMail extends Mailable
     }
 
     /**
-     * Get the message content definition.
+     * Construct the message
+     * pasa los datos a la vista
      */
     public function content(): Content
     {

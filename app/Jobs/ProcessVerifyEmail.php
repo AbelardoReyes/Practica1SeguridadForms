@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VerifyMail;
+use Illuminate\Support\Facades\Log;
 
 class ProcessVerifyEmail implements ShouldQueue
 {
@@ -26,10 +27,14 @@ class ProcessVerifyEmail implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Envia un correo de verificación al usuario
      */
     public function handle(): void
     {
-        Mail::to($this->user->email)->send(new VerifyMail($this->user, $this->url));
+        try {
+            Mail::to($this->user->email)->send(new VerifyMail($this->user, $this->url));
+        } catch (\Throwable $th) {
+            Log::channel('slackerror')->error($th->getMessage());
+        }
     }
 }

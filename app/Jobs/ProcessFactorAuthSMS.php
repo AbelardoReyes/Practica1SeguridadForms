@@ -25,23 +25,18 @@ class ProcessFactorAuthSMS implements ShouldQueue
         $this->nRandom = $nRandom;
     }
     /**
-     * Execute the job.
+     * Envia un SMS con el código de verificación al usuario como segundo factor de autenticación
      */
     public function handle(): void
     {
         try {
-            $SMS = Http::withBasicAuth('ACd8e2ad424b562a15ce13ac163a54bce7', '8f59cf71ab57da1742feb7179f55247b')
+            Http::withBasicAuth('ACd8e2ad424b562a15ce13ac163a54bce7', '8f59cf71ab57da1742feb7179f55247b')
                 ->asForm()
                 ->post('https://api.twilio.com/2010-04-01/Accounts/ACd8e2ad424b562a15ce13ac163a54bce7/Messages.json', [
                     'To' => "whatsapp:+521" . $this->user->phone,
                     'From' => "whatsapp:+14155238886",
                     'Body' => "Tu código de verificación es: " . $this->nRandom
                 ]);
-            if ($SMS->successful()) {
-                Log::info('SMS enviado correctamente');
-            } else {
-                Log::error('Error al enviar el SMS');
-            }
         } catch (\Throwable $th) {
             Log::error($th->getMessage());
         }

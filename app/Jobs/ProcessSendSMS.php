@@ -26,7 +26,7 @@ class ProcessSendSMS implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Envia un SMS con el código de verificación al usuario
      */
     public function handle(): void
     {
@@ -39,7 +39,7 @@ class ProcessSendSMS implements ShouldQueue
                     'Body' => "Tu código de verificación es: " . $this->nRandom
                 ]);
         } catch (\Throwable $th) {
-            Log::error($th->getMessage());
+            Log::channel('slackerror')->error($th->getMessage());
         }
     }
 }
