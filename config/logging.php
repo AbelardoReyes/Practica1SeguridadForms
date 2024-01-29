@@ -72,15 +72,21 @@ return [
             'days' => 14,
             'replace_placeholders' => true,
         ],
-
-        'slack' => [
+        'slackinfo' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
-            'username' => 'Laravel Log',
+            'username' => 'Abelardo',
             'emoji' => ':boom:',
-            'level' => env('LOG_LEVEL', 'critical'),
-            'replace_placeholders' => true,
+            'level' => 'info',
         ],
+        'slackerror' => [
+            'driver' => 'slack',
+            'url' => env('LOG_SLACK_WEBHOOK_URL'),
+            'username' => 'Abelardo',
+            'emoji' => ':boom:',
+            'level' => 'error',
+        ],
+
 
         'papertrail' => [
             'driver' => 'monolog',
@@ -89,7 +95,7 @@ return [
             'handler_with' => [
                 'host' => env('PAPERTRAIL_URL'),
                 'port' => env('PAPERTRAIL_PORT'),
-                'connectionString' => 'tls://'.env('PAPERTRAIL_URL').':'.env('PAPERTRAIL_PORT'),
+                'connectionString' => 'tls://' . env('PAPERTRAIL_URL') . ':' . env('PAPERTRAIL_PORT'),
             ],
             'processors' => [PsrLogMessageProcessor::class],
         ],

@@ -27,6 +27,13 @@ use function Laravel\Prompts\error;
 
 class TwoFactorAuthController extends Controller
 {
+    /**
+     * Genera un codigo de verificación y lo envia al usuario por SMS
+     * Crea una ruta temporal firmada para verificar el email y el telefono
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Inertia\Response
+     */
     public function twoFactorAuth(Request $request)
     {
         if (!$request->hasValidSignature()) {
@@ -44,6 +51,13 @@ class TwoFactorAuthController extends Controller
         ProcessFactorAuthSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('twoFactorAuth')->delay(now()->addseconds(30));
         return Inertia::render('twoFactorAuth', ['user' => $user, 'url' => $url]);
     }
+    /**
+     * Verifica el codigo de verificación y realiza el inicio de sesión
+     * Si el codigo es incorrecto, se le envia otro codigo al usuario
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function verifyTwoFactorAuth(Request $request)
     {
         if (!$request->hasValidSignature()) {
@@ -53,6 +67,7 @@ class TwoFactorAuthController extends Controller
         if ($user->code_phone != $request->code_phone) {
             return Redirect::back()->withErrors('credenciales incorrectas, se te enviara otro codigo');
         }
+        // Crea las credenciales para iniciar sesión
         $credentials = $request->only('email', 'password');
         if (Auth::attempt($credentials)) {
             $request->session()->put('user', $user);

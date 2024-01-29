@@ -35,10 +35,6 @@ const form = reactive({
 function submit() {
     router.post(route("login"), form);
 }
-function validCaptcha() {
-    router.post(route("login"), form);
-}
-
 const script = document.createElement("script");
 script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
 script.async = true;
@@ -48,7 +44,7 @@ script.onload = () => {
     // Configuración de reCAPTCHA
     window.grecaptcha.ready(() => {
         window.grecaptcha.render("contenedor-recaptcha", {
-            sitekey: "6LdQ7F0pAAAAAMb2vICxr89p1srjijesx1HKl73A",
+            sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
             callback: (response) => {
                 form.gRecaptchaResponse = response;
             },
@@ -124,6 +120,7 @@ script.onload = () => {
                 </PrimaryButton>
             </div>
         </form>
+        <p style="color:brown;" v-if="error">{{ error.gRecaptchaResponse }}</p>
         <p style="color:brown;" v-if="errors">{{ errors.gRecaptchaResponse }}</p>
         <p style="color:brown;" v-if="errors">{{ errors.status }}</p>
 

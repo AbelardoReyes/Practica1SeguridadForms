@@ -46,15 +46,20 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    /**
+     * Este método se llama cuando se inicia el modelo de usuario.
+     * Establece el role_id del usuario en función de la existencia de un usuario con role_id 1.
+     * Si ya existe un usuario con role_id 1, al nuevo usuario se le asignará role_id 2.
+     * En caso contrario, al nuevo usuario se le asignará role_id 1.
+     *
+     * @return void
+     */
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($user) {
-            // Verifica si ya existe un registro con el rol 1
             $existingRoleOneUser = User::where('role_id', 1)->exists();
-
-            // Asigna el rol correspondiente
             $user->role_id = $existingRoleOneUser ? 2 : 1;
         });
     }

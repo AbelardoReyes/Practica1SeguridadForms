@@ -18,6 +18,7 @@ use App\Mail\VerifyMail;
 use App\Jobs\ProcessVerifyEmail;
 use App\Jobs\ProcessSendSMS;
 use App\Jobs\ProcessFactorAuthSMS;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
@@ -27,6 +28,15 @@ use function Laravel\Prompts\error;
 
 class AuthController extends Controller
 {
+    /**
+     * Método para iniciar sesión.
+     * Valida los datos recibidos y realiza el inicio de sesión.
+     * Si el usuario es administrador, se le envia un codigo de verificación por SMS.
+     * Implementa Google reCaptcha v2.
+     *
+     * @param Request $request La solicitud HTTP recibida.
+     * @return \Illuminate\Http\Response La respuesta HTTP.
+     */
     public function login(Request $request)
     {
         try {
@@ -41,43 +51,54 @@ class AuthController extends Controller
                 'password.required' => 'La contraseña es requerida',
                 'gRecaptchaResponse.required' => 'El captcha es requerido'
             ];
+            // Valida los datos recibidos
             $validator = Validator::make($request->all(), $rules, $messages);
             if ($validator->fails()) {
-                Log::error($validator->errors());
                 return Inertia::render('LoginForm', [
                     'errors' => $validator->errors()
                 ]);
             }
-            // $recaptcha = Http::post('https://www.google.com/recaptcha/api/siteverify', [
-            //     'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
-            //     'response' => $request->gRecaptchaResponse
-            // ]);
-            $user = User::where('email', $request->email)->first();
-            if (!$user) {
-                Log::error('User not found');
+            // Verifica el captcha haciendo una solicitud a la API de Google
+            $recaptcha = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => '6Lelul4pAAAAADiBihVlhWcWVLZ9QnqwZyeSCMMc',
+                'response' => $request->gRecaptchaResponse
+            ]);
+            // Si el captcha es invalido, retorna el formulario de inicio de sesion con el error
+            if (!$recaptcha->json()['success']) {
+                Log::channel('slackinfo')->error('Intento de inicio de sesion con captcha invalido');
                 return Inertia::render('LoginForm', [
-                    'error.email' => 'Credenciales Invalidas'
+                    'error.gRecaptchaResponse' => 'Captcha Invalido'
                 ]);
             }
+            // Busca el usuario en la base de datos por su email y verifica que este activo
+            $user = User::where('email', $request->email)->where('status', 1)->first();
+            if (!$user) {
+                return Inertia::render('LoginForm', [
+                    'error.email' => 'Credenciales Invalidas', 'errors.status' => 'Puede que su usuario no este verificado'
+                ]);
+            }
+            // Verifica que la contraseña sea correcta
             if (!Hash::check($request->password, $user->password)) {
                 return Inertia::render('LoginForm', [
                     'error.password' => 'Credenciales Invalidas'
                 ]);
             }
-            if (!$user->status) {
-                return Inertia::render('LoginForm', [
-                    'errors.status' => 'Usuario no verificado'
-                ]);
-            }
-
+            // Si el usuario no es administrador, inicia sesion directamente
             if ($user->role_id == 2) {
                 $credentials = $request->only('email', 'password');
-                if (Auth::attempt($credentials)) {
-                    $request->session()->put('user', $user);
-                    $request->session()->regenerate();
+                if (!Auth::attempt($credentials)) {
+                    return Inertia::render('LoginForm', [
+                        'error.email' => 'Credenciales Invalidas', 'error.password' => 'Credenciales Invalidas'
+                    ]);
                 }
+                $request->session()->put('user', $user);
+                $request->session()->regenerate();
+                Log::channel('slackinfo')->info('Inicio de sesion de ' . $user->email);
                 return Redirect::route('Home');
-            } else {
+            }
+            // Si el usuario es administrador, envia un codigo de verificacion por SMS
+            else {
+                Log::channel('slackinfo')->info('Intento de inicio de sesion de ' . $user->email . ' como administrador');
                 $url = URL::temporarySignedRoute(
                     'twoFactorAuth',
                     now()->addMinutes(30),
@@ -85,63 +106,102 @@ class AuthController extends Controller
                 );
                 return Inertia::location($url);
             }
-        } catch (\Throwable $th) {
-            Log::error($th->getMessage());
+        } catch (\PDOException $e) {
+            Log::channel('slackerror')->error($e->getMessage());
             return Inertia::render('LoginForm', [
-                'error' => 'Algo salio mal'
+                'error.email' => 'Credenciales Invalidas', 'error.password' => 'Credenciales Invalidas'
+            ]);
+        } catch (\Exception $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'error.email' => 'Credenciales Invalidas', 'error.password' => 'Credenciales Invalidas'
             ]);
         }
     }
 
+    /**
+     * Realiza el registro de un usuario.
+     * Envia un correo de verificación al usuario.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function register(Request $request)
     {
-        $rules = [
-            'name' => 'required',
-            'last_name' => 'required',
-            'phone' => 'required|unique:users',
-            'email' => 'required|email|unique:users',
-            'password' => 'required',
-            'password_confirmation' => 'required',
-        ];
-        $messages = [
-            'email.required' => 'El email es requerido',
-            'email.unique' => 'El email no esta disponible',
-            'email.email' => 'El email no es valido',
-            'password.required' => 'La contraseña es requerida',
-            'name.required' => 'El nombre es requerido',
-            'last_name.required' => 'El apellido es requerido',
-            'phone.required' => 'El numero de telefono es requerido',
-            'password_confirmation.required' => 'La confirmación de la contraseña es requerida',
-        ];
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($request->password != $request->password_confirmation) {
+        try {
+            $rules = [
+                'name' => 'required',
+                'last_name' => 'required',
+                'phone' => 'required|unique:users',
+                'email' => 'required|email|unique:users',
+                'password' => 'required',
+                'password_confirmation' => 'required',
+            ];
+            $messages = [
+                'email.required' => 'El email es requerido',
+                'email.unique' => 'El email no esta disponible',
+                'email.email' => 'El email no es valido',
+                'password.required' => 'La contraseña es requerida',
+                'name.required' => 'El nombre es requerido',
+                'last_name.required' => 'El apellido es requerido',
+                'phone.required' => 'El numero de telefono es requerido',
+                'password_confirmation.required' => 'La confirmación de la contraseña es requerida',
+            ];
+            // Valida los datos recibidos
+            $validator = Validator::make($request->all(), $rules, $messages);
+            // Si hay errores, retorna el formulario de registro con los errores
+            if ($validator->fails()) {
+                return Inertia::render('RegisterForm', [
+                    'errors' => $validator->errors()
+                ]);
+            }
+            // Verifica que las contraseñas coincidan
+            if ($request->password != $request->password_confirmation) {
+                return Inertia::render('RegisterForm', [
+                    'errors.password_confirmation' => 'Las contraseñas no coinciden'
+                ]);
+            }
+            $user = new User();
+            // Llena el modelo con los datos recibidos
+            $user->fill($request->all());
+            $user->save();
+            // Genera la url para verificar el correo
+            $url = URL::temporarySignedRoute(
+                'verifyEmail',
+                now()->addMinutes(30),
+                ['id' => $user->id]
+            );
+
+            Log::channel('slackinfo')->info('Se registro ' . $user->email);
+            // Envia el correo de verificación
+            ProcessVerifyEmail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(10));
+            return Redirect::route('login');
+        } catch (\Exception $e) {
+            Log::channel('slackerror')->error($e->getMessage());
             return Inertia::render('RegisterForm', [
-                'errors.password_confirmation' => 'Las contraseñas no coinciden'
+                'errors' => $e->getMessage()
             ]);
         }
-        if ($validator->fails()) {
-            return Inertia::render('RegisterForm', [
-                'errors' => $validator->errors()
-            ]);
-        }
-        $user = new User();
-        $user->fill($request->all());
-        $user->save();
-        $url = URL::temporarySignedRoute(
-            'verifyEmail',
-            now()->addMinutes(30),
-            ['id' => $user->id]
-        );
-        ProcessVerifyEmail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(10));
-        return Redirect::route('login');
     }
 
+    /**
+     * Meotodo para cerrar sesión.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse|\Inertia\Response
+     */
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerate();
-        return Redirect::route('login');
+        try {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerate();
+            return Redirect::route('login');
+        } catch (\Exception $e) {
+            Log::channel('slackerror')->error($e->getMessage());
+            return Inertia::render('LoginForm', [
+                'errors' => $e->getMessage()
+            ]);
+        }
     }
-
 }
