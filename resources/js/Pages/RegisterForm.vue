@@ -45,106 +45,108 @@ const submit = () => {
     });
 };
 </script>
-
 <template>
     <GuestLayout>
         <Head title="Register" />
-
         <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="name" value="Nombre" />
+            <div class="grid grid-cols-2 gap-4">
+                <div class="mt-1">
+                    <InputLabel for="name" value="nombre" />
 
-                <TextInput
-                    id="name"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.name"
-                    required
-                    autofocus
-                    autocomplete="name"
-                />
+                    <TextInput
+                        id="name"
+                        type="text"
+                        class="mt-1 block w-full"
+                        v-model="form.name"
+                        required
+                        autofocus
+                        autocomplete="name"
+                    />
 
-                <InputError class="mt-2" :message="form.errors.name" />
-            </div>
-            <div>
-                <InputLabel for="last_name" value="Apellido" />
+                    <InputError class="mt-2" :message="form.errors.name" />
+                </div>
+                <div class="mt-1">
+                    <InputLabel for="last_name" value="Apellido" />
 
-                <TextInput
-                    id="last_name"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.last_name"
-                    autofocus
-                    autocomplete="last_name"
-                />
+                    <TextInput
+                        id="last_name"
+                        type="text"
+                        class="mt-1 block w-full"
+                        v-model="form.last_name"
+                        autofocus
+                        required
+                        autocomplete="last_name"
+                    />
 
-                <InputError class="mt-2" :message="form.errors.last_name" />
-            </div>
-            <div>
-                <InputLabel for="phone" value="Telefono" />
+                    <InputError class="mt-2" :message="form.errors.last_name" />
+                </div>
+                <div class="mt-1">
+                    <InputLabel for="phone" value="Telefono" />
 
-                <TextInput
-                    id="phone"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.phone"
-                    required
-                    autofocus
-                    autocomplete="phone"
-                />
+                    <TextInput
+                        id="phone"
+                        type="text"
+                        class="mt-1 block w-full"
+                        v-model="form.phone"
+                        required
+                        maxlength="10"
+                        autofocus
+                        autocomplete="phone"
+                    />
 
-                <InputError class="mt-2" :message="form.errors.phone" />
-            </div>
+                    <InputError class="mt-2" :message="form.errors.phone" />
+                </div>
 
-            <div class="mt-4">
-                <InputLabel for="email" value="Correo" />
+                <div class="mt-1">
+                    <InputLabel for="email" value="Correo" />
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autocomplete="phone"
-                />
+                    <TextInput
+                        id="email"
+                        type="email"
+                        class="mt-1 block w-full"
+                        v-model="form.email"
+                        required
+                        autocomplete="phone"
+                    />
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
+                    <InputError class="mt-2" :message="form.errors.email" />
+                </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Contraseña" />
+                <div class="mt-1">
+                    <InputLabel for="password" value="Contraseña" />
 
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="new-password"
-                />
+                    <TextInput
+                        id="password"
+                        type="password"
+                        class="mt-1 block w-full"
+                        v-model="form.password"
+                        required
+                        autocomplete="new-password"
+                    />
 
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
+                    <InputError class="mt-2" :message="form.errors.password" />
+                </div>
 
-            <div class="mt-4">
-                <InputLabel
-                    for="password_confirmation"
-                    value="Confirma la contraseña"
-                />
+                <div class="mt-1">
+                    <InputLabel
+                        for="password_confirmation"
+                        value="Confirma la contraseña"
+                    />
 
-                <TextInput
-                    id="password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password_confirmation"
-                    required
-                    autocomplete="new-password"
-                />
+                    <TextInput
+                        id="password_confirmation"
+                        type="password"
+                        class="mt-1 block w-full"
+                        v-model="form.password_confirmation"
+                        required
+                        autocomplete="new-password"
+                    />
 
-                <InputError
-                    class="mt-2"
-                    :message="form.errors.password_confirmation"
-                />
+                    <InputError
+                        class="mt-2"
+                        :message="form.errors.password_confirmation"
+                    />
+                </div>
             </div>
             <div
                 style="margin-left: 13%; margin-top: 5%"
@@ -152,7 +154,13 @@ const submit = () => {
                 class="g-recaptcha"
                 data-sitekey="6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB"
             ></div>
-            <p style="color: brown;margin-left: 35%; margin-top: 5%" v-if="error">{{ error.gRecaptchaResponse }}</p>
+            <p
+                style="margin-left: 30%; margin-top: 2%"
+                class="mb-4 font-medium text-sm text-red-500"
+                v-if="errors"
+            >
+                {{ errors.gRecaptchaResponse }}
+            </p>
 
             <div class="flex items-center justify-end mt-4">
                 <!-- <Link

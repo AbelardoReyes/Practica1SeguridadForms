@@ -24,21 +24,21 @@ defineProps({
     },
 });
 const script = document.createElement("script");
-    script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
-    script.async = true;
-    document.head.appendChild(script);
+script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+script.async = true;
+document.head.appendChild(script);
 
-    script.onload = () => {
-        // Configuración de reCAPTCHA
-        window.grecaptcha.ready(() => {
-            window.grecaptcha.render("contenedor-recaptcha", {
-                sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
-                callback: (response) => {
-                    form.gRecaptchaResponse = response;
-                },
-            });
+script.onload = () => {
+    // Configuración de reCAPTCHA
+    window.grecaptcha.ready(() => {
+        window.grecaptcha.render("contenedor-recaptcha", {
+            sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
+            callback: (response) => {
+                form.gRecaptchaResponse = response;
+            },
         });
-    };
+    });
+};
 const form = reactive({
     email: "",
     password: "",
@@ -71,14 +71,17 @@ function submit() {
                     type="email"
                     class="mt-1 block w-full"
                     v-model="form.email"
-                    required
                     autofocus
+                    required
                     maxlength="255"
                     autocomplete="username"
                 />
 
-                <div v-if="error" class="mb-4 font-medium text-sm text-red-600">
-                    {{ error.email }}
+                <div
+                    v-if="errors"
+                    class="mb-4 font-medium text-sm text-red-600"
+                >
+                    {{ errors.email }}
                 </div>
             </div>
 
@@ -95,8 +98,11 @@ function submit() {
                     autocomplete="current-password"
                 />
 
-                <div v-if="error" class="mb-4 font-medium text-sm text-red-600">
-                    {{ error.password }}
+                <div
+                    v-if="errors"
+                    class="mb-4 font-medium text-sm text-red-600"
+                >
+                    {{ errors.password }}
                 </div>
             </div>
             <div
@@ -105,6 +111,10 @@ function submit() {
                 class="g-recaptcha"
                 data-sitekey="6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB"
             ></div>
+            <p class="mb-4 font-medium text-sm text-red-600" style="margin-left: 30%; margin-top: 2%;" v-if="errors" >
+                {{ errors.gRecaptchaResponse }}
+            </p>
+
             <div class="flex items-center justify-end mt-4">
                 <Link
                     :href="route('registerView')"
@@ -122,16 +132,9 @@ function submit() {
                 </PrimaryButton>
             </div>
         </form>
-        <p style="color: brown" v-if="error">{{ error.gRecaptchaResponse }}</p>
-        <div
-            v-for="error in errors"
-            class="mb-4 font-medium text-sm text-red-600"
-        >
-            {{ error }}
-        </div>
-        <p style="color: brown" v-if="error">{{ error.PDO }}</p>
-        <p style="color: brown" v-if="error">{{ error.QueryE }}</p>
-        <p style="color: brown" v-if="error">{{ error.ValidationE }}</p>
-        <p style="color: brown" v-if="error">{{ error.Exception }}</p>
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">{{ errors.PDO }}</p>
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">{{ error.QueryE }}</p>
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">{{ error.ValidationE }}</p>
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">{{ error.Exception }}</p>
     </GuestLayout>
 </template>
