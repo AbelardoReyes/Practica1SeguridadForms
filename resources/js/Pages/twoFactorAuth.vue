@@ -121,9 +121,9 @@ function submit() {
                 </PrimaryButton>
             </div>
         </form>
+
         <p v-if="PROPS.errors" style="color: brown">
             {{ PROPS.errors[0] }}
         </p>
-        {{ error }}
     </GuestLayout>
 </template>

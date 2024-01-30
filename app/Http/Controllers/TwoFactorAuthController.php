@@ -54,7 +54,7 @@ class TwoFactorAuthController extends Controller
                 ['id' => $user->id]
             );
             $user->save();
-            //ProcessFactorAuthSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('twoFactorAuth')->delay(now()->addseconds(30));
+            ProcessFactorAuthSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('twoFactorAuth')->delay(now()->addseconds(30));
             return Inertia::render('twoFactorAuth', ['user' => $user, 'url' => $url]);
         } catch (PDOException $e) {
             Log::channel('slackerror')->error($e->getMessage());

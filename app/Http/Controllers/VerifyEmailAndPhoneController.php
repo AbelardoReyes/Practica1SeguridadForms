@@ -59,7 +59,7 @@ class VerifyEmailAndPhoneController extends Controller
                 now()->addMinutes(30),
                 ['id' => $user->id]
             );
-            //ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
+            ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
             return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
         } catch (PDOException $e) {
             Log::channel('slackerror')->error($e->getMessage());
@@ -95,6 +95,12 @@ class VerifyEmailAndPhoneController extends Controller
     public function sendCodeVerifyEmailAndPhone(Request $request)
     {
         try {
+            $validator = Validator::make($request->all(), [
+                'code_phone' => 'required|numeric|digits:4',
+            ]);
+            if ($validator->fails()) {
+                return Redirect::back()->withErrors($validator);
+            }
             // Verifica que la ruta tenga una firma valida
             if (!$request->hasValidSignature()) {
                 abort(401);
