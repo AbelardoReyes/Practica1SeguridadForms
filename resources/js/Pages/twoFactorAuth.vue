@@ -23,6 +23,9 @@ const PROPS = defineProps({
     errors: {
         type: Object,
     },
+    password: {
+        type: String,
+    },
 });
 const form = reactive({
     code_phone: "",
@@ -36,6 +39,7 @@ function submit() {
 </script>
 
 <template>
+    {{ PROPS.password }}
     <GuestLayout>
         <Head title="Log in" />
         <h4 style="color: white">

@@ -9,7 +9,7 @@ import { Head, Link, useForm, router } from "@inertiajs/vue3";
 import { onMounted } from "vue";
 import { reactive } from "vue";
 
-defineProps({
+const PROPS = defineProps({
     canResetPassword: {
         type: Boolean,
     },
@@ -22,23 +22,32 @@ defineProps({
     errors: {
         type: Object,
     },
+    widgetId1: {
+        type: String,
+    },
 });
-const script = document.createElement("script");
-script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
-script.async = true;
-document.head.appendChild(script);
 
-script.onload = () => {
-    // Configuración de reCAPTCHA
-    window.grecaptcha.ready(() => {
-        window.grecaptcha.render("contenedor-recaptcha", {
-            sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
-            callback: (response) => {
-                form.gRecaptchaResponse = response;
-            },
+function loadRecaptcha() {
+    const script = document.createElement("script");
+    script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+    script.async = true;
+    document.head.appendChild(script);
+
+    script.onload = () => {
+        // Configuración de reCAPTCHA
+        window.grecaptcha.ready(() => {
+            PROPS.widgetId1 = window.grecaptcha.render("contenedor-recaptcha", {
+                sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
+                callback: (response) => {
+                    form.gRecaptchaResponse = response;
+                },
+            });
         });
-    });
-};
+    };
+}
+onMounted(() => {
+    loadRecaptcha();
+});
 const form = reactive({
     email: "",
     password: "",
@@ -47,7 +56,14 @@ const form = reactive({
 });
 
 function submit() {
-    router.post(route("login"), form);
+    if (form.gRecaptchaResponse == "") {
+        alert("Por favor Complete el Captcha");
+        window.grecaptcha.reset(PROPS.widgetId1);
+        return;
+    }
+    if (!router.post(route("login"), form)) {
+        window.grecaptcha.reset(PROPS.widgetId1);
+    }
 }
 </script>
 
@@ -106,12 +122,16 @@ function submit() {
                 </div>
             </div>
             <div
-                style="margin-left: 13%; margin-top: 5%"
+                style="margin-left: 12%; margin-top: 5%"
                 id="contenedor-recaptcha"
                 class="g-recaptcha"
                 data-sitekey="6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB"
             ></div>
-            <p class="mb-4 font-medium text-sm text-red-600" style="margin-left: 30%; margin-top: 2%;" v-if="errors" >
+            <p
+                class="mb-4 font-medium text-sm text-red-600"
+                style="margin-left: 30%; margin-top: 2%"
+                v-if="errors"
+            >
                 {{ errors.gRecaptchaResponse }}
             </p>
 
@@ -132,9 +152,17 @@ function submit() {
                 </PrimaryButton>
             </div>
         </form>
-        <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">{{ errors.PDO }}</p>
-        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">{{ error.QueryE }}</p>
-        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">{{ error.ValidationE }}</p>
-        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">{{ error.Exception }}</p>
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">
+            {{ errors.PDO }}
+        </p>
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">
+            {{ error.QueryE }}
+        </p>
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">
+            {{ error.ValidationE }}
+        </p>
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">
+            {{ error.Exception }}
+        </p>
     </GuestLayout>
 </template>

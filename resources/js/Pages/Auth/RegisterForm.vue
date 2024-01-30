@@ -5,14 +5,39 @@ import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
 import { Head, Link, useForm } from "@inertiajs/vue3";
+import { onMounted } from "vue";
 
-defineProps({
+const PROPS = defineProps({
     errors: {
         type: Object,
     },
     error: {
         type: Object,
     },
+    widgetId1: {
+        type: String,
+    },
+});
+function loadRecaptcha() {
+    const script = document.createElement("script");
+    script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+    script.async = true;
+    document.head.appendChild(script);
+
+    script.onload = () => {
+        // Configuración de reCAPTCHA
+        window.grecaptcha.ready(() => {
+            PROPS.widgetId1 = window.grecaptcha.render("contenedor-recaptcha", {
+                sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
+                callback: (response) => {
+                    form.gRecaptchaResponse = response;
+                },
+            });
+        });
+    };
+}
+onMounted(() => {
+    loadRecaptcha();
 });
 const form = useForm({
     name: "",
@@ -23,26 +48,16 @@ const form = useForm({
     password: "",
     password_confirmation: "",
 });
-const script = document.createElement("script");
-script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
-script.async = true;
-document.head.appendChild(script);
 
-script.onload = () => {
-    // Configuración de reCAPTCHA
-    window.grecaptcha.ready(() => {
-        window.grecaptcha.render("contenedor-recaptcha", {
-            sitekey: "6Lelul4pAAAAADN78UT9yavMvEfNwZm-kS0jvzrB",
-            callback: (response) => {
-                form.gRecaptchaResponse = response;
-            },
-        });
-    });
-};
 const submit = () => {
-    form.post(route("register"), {
-        onFinish: () => form.reset("password", "password_confirmation"),
-    });
+    if (form.gRecaptchaResponse == "") {
+        alert("Por favor Complete el Captcha");
+        window.grecaptcha.reset(PROPS.widgetId1);
+        return;
+    }
+    if (!form.post(route("register"))) {
+        window.grecaptcha.reset(PROPS.widgetId1);
+    }
 };
 </script>
 <template>

@@ -4,12 +4,15 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\User;
+use Dotenv\Exception\ValidationException;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Database\QueryException;
+use PDOException;
 
 class LoginRequest extends FormRequest
 {
@@ -73,28 +76,30 @@ class LoginRequest extends FormRequest
      */
     public function withValidator($validator)
     {
-       try{
-        $validator->after(function ($validator) {
-            // Verificar si el usuario está activado
-            $user = User::where('email', $this->email)->where('status', 1)->first();
+        try {
+            $validator->after(function ($validator) {
+                // Verificar si el usuario está activado
+                $user = User::where('email', $this->email)->where('status', 1)->first();
 
-            if (!$user) {
-                $validator->errors()->add('email', 'Cuenta no activada');
-            }
-            if (!Hash::check($this->password, $user->password)) {
-                $validator->errors()->add('password', 'Credenciales Inválidas');
-            }
-            $recaptcha = Http::asForm()->post(env('API_GOOGLE_RECAPTCHA'), [
-                'secret' => env('SECRET_RECAPTCHA'),
-                'response' => $this->gRecaptchaResponse
-            ]);
-            if (!$recaptcha->json()['success']) {
-                Log::channel('slackinfo')->warning('Intento de inicio de sesion con captcha invalido');
-                $validator->errors()->add('gRecaptchaResponse', 'Captcha Inválido');
-            }
-        });
-       } catch (Exception $e) {
-        Log::channel('slackinfo')->critical($e->getMessage());
-       }
+                if (!$user) {
+                    $validator->errors()->add('email', 'Cuenta no activada');
+                    return;
+                }
+                if (!Hash::check($this->password, $user->password)) {
+                    $validator->errors()->add('password', 'Credenciales Inválidas');
+                }
+                $recaptcha = Http::asForm()->post(env('API_GOOGLE_RECAPTCHA'), [
+                    'secret' => env('SECRET_RECAPTCHA'),
+                    'response' => $this->gRecaptchaResponse
+                ]);
+                if (!$recaptcha->json()['success']) {
+                    Log::channel('slackinfo')->warning('Intento de inicio de sesion con captcha invalido');
+                    $validator->errors()->add('gRecaptchaResponse', 'Captcha Inválido');
+                }
+            });
+        } catch (Exception $e) {
+            $validator->errors()->add('Exception', 'Ocurrió un error');
+            Log::channel('slackinfo')->critical($e->getMessage());
+        }
     }
 }
