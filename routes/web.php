@@ -41,10 +41,10 @@ Route::get('/', function () {
 
 Route::prefix('auth')->group(function () {
     Route::get('/login', function () {
-        return Inertia::render('LoginForm');
+        return Inertia::render('Auth/LoginForm');
     })->name('loginView');
     Route::get('/register', function () {
-        return Inertia::render('RegisterForm');
+        return Inertia::render('Auth/RegisterForm');
     })->name('registerView');
     Route::get('/verify-email', function () {
         return Inertia::render('VerifyEmailForm');
