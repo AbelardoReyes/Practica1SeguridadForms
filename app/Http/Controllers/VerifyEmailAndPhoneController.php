@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\PostCodePhoneRequest;
 use App\Http\Requests\RegisterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -33,84 +34,73 @@ use function Laravel\Prompts\error;
 
 class VerifyEmailAndPhoneController extends Controller
 {
-
     /**
-     * Verifica el email del usuario.
-     * Crea un codigo de verificación y lo envia al usuario por SMS
-     *
+     * Verifica que el correo sea valido
+     * Envia un mensaje de texto con un codigo de verificación
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Inertia\Response
+     * @return \Inertia\Response La respuesta de Inertia con los datos del usuario y la URL de verificación.
      */
     public function verifyEmail(Request $request)
     {
         try {
-            // Verifica que la ruta tenga una firma valida
             if (!$request->hasValidSignature()) {
                 abort(401);
             }
             $nRandom = rand(1000, 9999);
             $user = User::find($request->id);
-            $user->code_phone = $nRandom;
-            $user->save();
-            // Crear una ruta temporal firmada para verificar el email y el telefono
             $url = URL::temporarySignedRoute(
                 'sendCodeVerifyEmailAndPhone',
                 now()->addMinutes(30),
                 ['id' => $user->id]
             );
-            ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
+            if ($user->code_phone == null) {
+                $user->code_phone = $nRandom;
+                ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
+            }
+            $user->save();
             return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
         } catch (PDOException $e) {
-            Log::channel('slackerror')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.PDO' => 'Error de Conexion'
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'PDO' => 'Hubo un error de inesperado, intente mas tarde'
             ]);
         } catch (QueryException $e) {
-            Log::channel('slackerror')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.QueryE' => 'Datos Invalidos'
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'QueryE' => 'Datos Invalidos'
             ]);
         } catch (ValidationException $e) {
-            Log::channel('slackerror')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.ValidationE' => 'Datos Invalidos'
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'ValidationE' => 'Datos Invalidos'
             ]);
         } catch (Exception $e) {
-            Log::channel('slackerror')->critical($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.Exception' => 'Ocurrio un error'
+            Log::channel('slackinfo')->critical($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'Exception' => 'Ocurrio un error'
             ]);
         }
     }
 
+
     /**
-     * Recibe el codigo de verificación
-     * y verifica que coincida con el codigo enviado al usuario por SMS
-     * Activa la cuenta del usuario
+     * Recibe el código de verificación y verifica que sea correcto
+     * Si es correcto, activa la cuenta del usuario
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  \App\Http\Requests\PostCodePhoneRequest  $request  La solicitud de código de teléfono.
+     * @return \Illuminate\Http\RedirectResponse  La respuesta de redirección a la página de inicio de sesión.
      */
-    public function sendCodeVerifyEmailAndPhone(Request $request)
+    public function sendCodeVerifyEmailAndPhone(PostCodePhoneRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'code_phone' => 'required|numeric|digits:4',
-            ]);
-            if ($validator->fails()) {
-                return Redirect::back()->withErrors($validator);
-            }
             // Verifica que la ruta tenga una firma valida
             if (!$request->hasValidSignature()) {
                 abort(401);
             }
             $user = User::find($request->id);
-            // Verifica que el codigo de verificación coincida con el codigo enviado al usuario por SMS
-            if ($user->code_phone != $request->code_phone) {
-                return Redirect::back()->withErrors('El codigo no coincide, se te enviara otro codigo');
-            }
             $user->status = true;
+            $user->code_phone = null;
             $user->save();
             if ($user->role_id == 1) {
                 Log::channel('slackinfo')->warning('Se activo la cuenta del usuario administrador' . $user->name);
@@ -118,24 +108,24 @@ class VerifyEmailAndPhoneController extends Controller
             ProcessEmailSucces::dispatch($user)->onConnection('database')->onQueue('sendEmailSucces')->delay(now()->addseconds(30));
             return Redirect::route('login');
         } catch (PDOException $e) {
-            Log::channel('slackerror')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.PDO' => 'Error de Conexion'
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'PDO' => 'Hubo un error de inesperado, intente mas tarde'
             ]);
         } catch (QueryException $e) {
-            Log::channel('slackerror')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.QueryE' => 'Datos Invalidos'
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'QueryE' => 'Datos Invalidos'
             ]);
         } catch (ValidationException $e) {
-            Log::channel('slackerror')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.ValidationE' => 'Datos Invalidos'
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'ValidationE' => 'Datos Invalidos'
             ]);
         } catch (Exception $e) {
-            Log::channel('slackerror')->critical($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.Exception' => 'Ocurrio un error'
+            Log::channel('slackinfo')->critical($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'Exception' => 'Ocurrio un error'
             ]);
         }
     }

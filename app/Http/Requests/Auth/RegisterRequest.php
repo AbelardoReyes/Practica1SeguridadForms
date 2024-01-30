@@ -1,6 +1,9 @@
 <?php
 
 namespace App\Http\Requests\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -31,6 +34,11 @@ class RegisterRequest extends FormRequest
             'gRecaptchaResponse' => 'required'
         ];
     }
+    /**
+     * Retorna un arreglo con los mensajes de error.
+     *
+     * @return array
+     */
     public function messages()
     {
         return [
@@ -49,6 +57,12 @@ class RegisterRequest extends FormRequest
             'gRecaptchaResponse.required' => 'El captcha es requerido'
         ];
     }
+    /**
+     * Retorna un arreglo que mapea los nombres de los atributos del formulario
+     * con los nombres que se mostrarán en los mensajes de error.
+     *
+     * @return array
+     */
     public function attributes()
     {
         return [
@@ -60,5 +74,29 @@ class RegisterRequest extends FormRequest
             'password_confirmation' => 'confirmación de contraseña',
             'gRecaptchaResponse' => 'captcha'
         ];
+    }
+    /**
+     * Verifica que el captcha sea correcto.
+     * Si la validación falla, se agrega un error al validador.
+     *
+     * @param  \Illuminate\Contracts\Validation\Validator  $validator
+     * @return void
+     */
+    public function withValidator($validator)
+    {
+        try{
+            $validator->after(function ($validator) {
+                $recaptcha = Http::asForm()->post(env('API_GOOGLE_RECAPTCHA'), [
+                    'secret' => env('SECRET_RECAPTCHA'),
+                    'response' => $this->gRecaptchaResponse
+                ]);
+                if (!$recaptcha->json()['success']) {
+                    Log::channel('slackinfo')->warning('Intento de inicio de sesion con captcha invalido');
+                    $validator->errors()->add('gRecaptchaResponse', 'Captcha Inválido');
+                }
+            });
+        } catch(Exception $e){
+            Log::channel('slackinfo')->critical($e->getMessage());
+        }
     }
 }

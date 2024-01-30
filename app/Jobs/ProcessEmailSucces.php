@@ -25,7 +25,7 @@ class ProcessEmailSucces implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Envia un correo electrónico al usuario cuando su cuenta ha sido activada.
      */
     public function handle(): void
     {

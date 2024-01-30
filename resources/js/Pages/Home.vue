@@ -17,6 +17,10 @@ const form = reactive({
 function logout() {
     router.get(route("logout"), form);
 }
+const getYouTubeEmbedUrl = (videoCode) => {
+    // Construye la URL de la incrustación de YouTube con el código del video
+    return `https://www.youtube.com/embed/${videoCode}`;
+};
 </script>
 <template>
     <div class="nav">
@@ -38,6 +42,19 @@ function logout() {
             <p>¡Hola, Usuario!</p>
 
             <a href="#" class="user-button">Panel de Usuario</a>
+        </div>
+        <div class="mt-4" v-if="PROPS.user.role_id == 1">
+            <iframe
+            style="margin: auto;"
+                width="560"
+                on-play="onPlay"
+                height="315"
+                src="https://www.youtube.com/embed/GtL1huin9EE?si=Vyq8GQBZlHvxWyS8"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+            ></iframe>
         </div>
     </div>
 </template>
@@ -78,27 +95,28 @@ body {
 }
 
 .dashboard {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-    .admin-button, .user-button {
-      display: none;
-      padding: 10px;
-      background-color: #3498db;
-      color: #fff;
-      text-decoration: none;
-      margin-right: 10px;
-    }
+.admin-button,
+.user-button {
+    display: none;
+    padding: 10px;
+    background-color: #3498db;
+    color: #fff;
+    text-decoration: none;
+    margin-right: 10px;
+}
 
-    .role-1 .admin-button {
-      display: inline-block;
-    }
+.role-1 .admin-button {
+    display: inline-block;
+}
 
-    .role-2 .user-button {
-      display: inline-block;
-    }
+.role-2 .user-button {
+    display: inline-block;
+}
 </style>

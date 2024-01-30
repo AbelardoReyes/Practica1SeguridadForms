@@ -14,10 +14,6 @@ const PROPS = defineProps({
     canResetPassword: {
         type: Boolean,
     },
-    status: false,
-    error: {
-        type: Object,
-    },
     user: {
         type: Object,
     },
@@ -42,9 +38,6 @@ function submit() {
 <template>
     <GuestLayout>
         <Head title="Log in" />
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-            {{ status }}
-        </div>
         <h4 style="color: white">
             Recibiras un mensaje a tu whatsApp con un codigo, el cual debes
             ingresar aqui para iniciar Sesion
@@ -60,10 +53,12 @@ function submit() {
                     max="9999"
                     class="mt-1 block w-full"
                     v-model="form.code_phone"
-                    required
                     autofocus
                     autocomplete="code_phone"
                 />
+            </div>
+            <div v-if="errors" class="mb-4 font-medium text-sm text-red-600">
+                {{ errors.code_phone }}
             </div>
             <div hidden="true">
                 <InputLabel for="email" value="Email" />
@@ -73,7 +68,6 @@ function submit() {
                     type="email"
                     class="mt-1 block w-full"
                     v-model="form.email"
-                    required
                     autofocus
                     autocomplete="email"
                 />
@@ -94,11 +88,14 @@ function submit() {
                     maxlength="200"
                     class="mt-1 block w-full"
                     v-model="form.password"
-                    autocomplete="Contraseña"
+                    autocomplete="current-password"
                 />
 
-                <div v-if="error" class="mb-4 font-medium text-sm text-red-600">
-                    {{ error.password }}
+                <div
+                    v-if="errors"
+                    class="mb-4 font-medium text-sm text-red-600"
+                >
+                    {{ errors.password }}
                 </div>
             </div>
             <div v-if="status">
@@ -121,9 +118,5 @@ function submit() {
                 </PrimaryButton>
             </div>
         </form>
-
-        <p v-if="PROPS.errors" style="color: brown">
-            {{ PROPS.errors[0] }}
-        </p>
     </GuestLayout>
 </template>

@@ -30,9 +30,9 @@ class ProcessFactorAuthSMS implements ShouldQueue
     public function handle(): void
     {
         try {
-            Http::withBasicAuth('ACd8e2ad424b562a15ce13ac163a54bce7', '0f0bbb09ef682b08505f0fe4b01f4f3a')
+            Http::withBasicAuth(env('SID'), env('TWILIO_AUTH_TOKEN'))
                 ->asForm()
-                ->post('https://api.twilio.com/2010-04-01/Accounts/ACd8e2ad424b562a15ce13ac163a54bce7/Messages.json', [
+                ->post(env('URL_TWILIO'), [
                     'To' => "whatsapp:+521" . $this->user->phone,
                     'From' => "whatsapp:+14155238886",
                     'Body' => "Tu código de verificación es: " . $this->nRandom

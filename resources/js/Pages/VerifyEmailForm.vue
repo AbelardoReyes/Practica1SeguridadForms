@@ -14,10 +14,6 @@ const PROPS = defineProps({
     canResetPassword: {
         type: Boolean,
     },
-    status: false,
-    error: {
-        type: Object,
-    },
     user: {
         type: Object,
     },
@@ -41,11 +37,9 @@ function submit() {
 <template>
     <GuestLayout>
         <Head title="Log in" />
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-            {{ status }}
-        </div>
         <h4 style="color: white">
-            Recibiras un mensaje a tu whatsApp con un codigo, el cual debes ingresar aqui
+            Recibiras un mensaje a tu whatsApp con un codigo, el cual debes
+            ingresar aqui
         </h4>
         <form @submit.prevent="submit">
             <div>
@@ -53,12 +47,12 @@ function submit() {
 
                 <TextInput
                     id="code_phone"
-                    type="number"
+                    type="text"
                     class="mt-1 block w-full"
                     v-model="form.code_phone"
-                    required
                     autofocus
-                    max="9999"
+                    required
+                    maxlength="4"
                     autocomplete="code_phone"
                 />
             </div>
@@ -68,12 +62,13 @@ function submit() {
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.id"
+                    required
                     autocomplete="id"
                 />
             </div>
-            <p v-if="PROPS.errors" style="color: brown">
-                {{ PROPS.errors[0] }}
-            </p>
+            <div v-if="errors" class="mb-4 font-medium text-sm text-red-600">
+                {{ errors.code_phone }}
+            </div>
             <div class="flex items-center justify-end mt-4">
                 <PrimaryButton
                     class="ms-4"
