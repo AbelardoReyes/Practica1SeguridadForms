@@ -4,7 +4,7 @@ import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
-import { Head, Link, useForm } from "@inertiajs/vue3";
+import { Head, Link, router, useForm } from "@inertiajs/vue3";
 import { onMounted } from "vue";
 
 const PROPS = defineProps({
@@ -55,7 +55,7 @@ const submit = () => {
         window.grecaptcha.reset(PROPS.widgetId1);
         return;
     }
-    if (!form.post(route("register"))) {
+    if (!router.post(route("register"), form)) {
         window.grecaptcha.reset(PROPS.widgetId1);
     }
 };
@@ -79,7 +79,12 @@ const submit = () => {
                         autocomplete="name"
                     />
 
-                    <InputError class="mt-2" :message="form.errors.name" />
+                    <p
+                        class="mb-4 font-medium text-sm text-red-500"
+                        v-if="errors"
+                    >
+                        {{ errors.name }}
+                    </p>
                 </div>
                 <div class="mt-1">
                     <InputLabel for="last_name" value="Apellido" />
@@ -95,7 +100,12 @@ const submit = () => {
                         autocomplete="last_name"
                     />
 
-                    <InputError class="mt-2" :message="form.errors.last_name" />
+                    <p
+                        class="mb-4 font-medium text-sm text-red-500"
+                        v-if="errors"
+                    >
+                        {{ errors.last_name }}
+                    </p>
                 </div>
                 <div class="mt-1">
                     <InputLabel for="phone" value="Telefono" />
@@ -111,7 +121,12 @@ const submit = () => {
                         autocomplete="phone"
                     />
 
-                    <InputError class="mt-2" :message="form.errors.phone" />
+                    <p
+                        class="mb-4 font-medium text-sm text-red-500"
+                        v-if="errors"
+                    >
+                        {{ errors.phone }}
+                    </p>
                 </div>
 
                 <div class="mt-1">
@@ -126,7 +141,12 @@ const submit = () => {
                         autocomplete="phone"
                     />
 
-                    <InputError class="mt-2" :message="form.errors.email" />
+                    <p
+                        class="mb-4 font-medium text-sm text-red-500"
+                        v-if="errors"
+                    >
+                        {{ errors.email }}
+                    </p>
                 </div>
 
                 <div class="mt-1">
@@ -141,7 +161,12 @@ const submit = () => {
                         autocomplete="new-password"
                     />
 
-                    <InputError class="mt-2" :message="form.errors.password" />
+                    <p
+                        class="mb-4 font-medium text-sm text-red-500"
+                        v-if="errors"
+                    >
+                        {{ errors.password }}
+                    </p>
                 </div>
 
                 <div class="mt-1">
@@ -159,10 +184,12 @@ const submit = () => {
                         autocomplete="new-password"
                     />
 
-                    <InputError
-                        class="mt-2"
-                        :message="form.errors.password_confirmation"
-                    />
+                    <p
+                        class="mb-4 font-medium text-sm text-red-500"
+                        v-if="errors"
+                    >
+                        {{ errors.password_confirmation }}
+                    </p>
                 </div>
             </div>
             <div
