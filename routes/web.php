@@ -51,7 +51,7 @@ Route::prefix('auth')->group(function () {
     })->name('verifyEmailView');
     Route::get('/Home', function () {
         $user = session('user');
-        return Inertia::render('Home', [
+        return Inertia::render('Sections/Home', [
             'user' => $user
         ]);
     })->name('Home')->middleware('auth');

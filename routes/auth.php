@@ -10,9 +10,10 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\VerifyEmailAndPhoneController;
-use App\Http\Controllers\TwoFactorAuthController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\VerifyEmailAndPhoneController;
+use App\Http\Controllers\Auth\TwoFactorAuthController;
+use App\Http\Controllers\UserController;
 
 // Route::middleware('guest')->group(function () {
 //     Route::get('register', [RegisteredUserController::class, 'create'])
@@ -75,3 +76,7 @@ Route::controller(TwoFactorAuthController::class)->prefix('/twoFactorAuth')->gro
     Route::get('/twoFactorAuth', 'twoFactorAuth')->name('twoFactorAuth')->middleware('signed');
     Route::post('/verifyTwoFactorAuth', 'verifyTwoFactorAuth')->name('verifyTwoFactorAuth')->middleware('signed');
 })->middleware('throttle:6,1');
+
+// Route::controller(UserController::class)->prefix('/admin')->group(function () {
+//     Route::get('/users', 'show')->name('users')->middleware('auth');
+// })->middleware('throttle:6,1');

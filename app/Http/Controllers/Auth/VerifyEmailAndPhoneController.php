@@ -1,36 +1,24 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
-use App\Http\Requests\LoginRequest;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\PostCodePhoneRequest;
-use App\Http\Requests\RegisterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
-use App\Models\PersonalAccessTokens;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\PersonalAccessToken;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifyMail;
-use App\Jobs\ProcessVerifyEmail;
 use App\Jobs\ProcessSendSMS;
 use App\Jobs\ProcessFactorAuthSMS;
 use Dotenv\Exception\ValidationException;
 use Exception;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
+
 use PDOException;
 use App\Jobs\ProcessEmailSucces;
 
-use function Laravel\Prompts\error;
 
 class VerifyEmailAndPhoneController extends Controller
 {
