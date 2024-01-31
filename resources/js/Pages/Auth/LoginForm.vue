@@ -155,14 +155,14 @@ function submit() {
         <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">
             {{ errors.PDO }}
         </p>
-        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">
-            {{ error.QueryE }}
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">
+            {{ errors.QueryE }}
         </p>
-        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">
-            {{ error.ValidationE }}
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">
+            {{ errors.ValidationE }}
         </p>
-        <p class="mb-4 font-medium text-sm text-red-500" v-if="error">
-            {{ error.Exception }}
+        <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">
+            {{ errors.Exception }}
         </p>
     </GuestLayout>
 </template>

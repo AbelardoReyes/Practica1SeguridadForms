@@ -51,25 +51,21 @@ class TwoFactorAuthController extends Controller
             $user->save();
             return Inertia::render('twoFactorAuth', ['user' => $user, 'url' => $url]);
         } catch (PDOException $e) {
-            // Manejar excepción de PDO
             Log::channel('slackinfo')->error($e->getMessage());
             return Redirect::route('login')->withErrors([
-                'PDO' => 'Hubo un error inesperado, intente más tarde'
+                'PDO' => 'Hubo un error inesperado, intente registrarse más tarde'
             ]);
         } catch (QueryException $e) {
-            // Manejar excepción de QueryException
             Log::channel('slackinfo')->error($e->getMessage());
             return Redirect::route('login')->withErrors([
                 'QueryE' => 'Datos inválidos'
             ]);
         } catch (ValidationException $e) {
-            // Manejar excepción de ValidationException
             Log::channel('slackinfo')->error($e->getMessage());
             return Redirect::route('login')->withErrors([
                 'ValidationE' => 'Datos inválidos'
             ]);
         } catch (Exception $e) {
-            // Manejar excepción genérica
             Log::channel('slackinfo')->critical($e->getMessage());
             return Redirect::route('login')->withErrors([
                 'Exception' => 'Ocurrió un error'
@@ -103,22 +99,22 @@ class TwoFactorAuthController extends Controller
         } catch (PDOException $e) {
             Log::channel('slackinfo')->error($e->getMessage());
             return Redirect::route('login')->withErrors([
-                'PDO' => 'Hubo un error de inesperado, intente mas tarde'
+                'PDO' => 'Hubo un error inesperado, intente registrarse más tarde'
             ]);
         } catch (QueryException $e) {
             Log::channel('slackinfo')->error($e->getMessage());
             return Redirect::route('login')->withErrors([
-                'QueryE' => 'Datos Invalidos'
+                'QueryE' => 'Datos inválidos'
             ]);
         } catch (ValidationException $e) {
             Log::channel('slackinfo')->error($e->getMessage());
             return Redirect::route('login')->withErrors([
-                'ValidationE' => 'Datos Invalidos'
+                'ValidationE' => 'Datos inválidos'
             ]);
         } catch (Exception $e) {
             Log::channel('slackinfo')->critical($e->getMessage());
             return Redirect::route('login')->withErrors([
-                'Exception' => 'Ocurrio un error'
+                'Exception' => 'Ocurrió un error'
             ]);
         }
     }

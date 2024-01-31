@@ -59,23 +59,23 @@ class AuthController extends Controller
             return Redirect::route('Home');
         } catch (PDOException $e) {
             Log::channel('slackinfo')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.PDO' => 'Hubo un error inesperado, intente registrarse más tarde'
+            return Redirect::route('login')->withErrors([
+                'PDO' => 'Hubo un error inesperado, intente registrarse más tarde'
             ]);
         } catch (QueryException $e) {
             Log::channel('slackinfo')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.QueryE' => 'Datos Inválidos'
+            return Redirect::route('login')->withErrors([
+                'QueryE' => 'Datos inválidos'
             ]);
         } catch (ValidationException $e) {
             Log::channel('slackinfo')->error($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.ValidationE' => 'Datos Inválidos'
+            return Redirect::route('login')->withErrors([
+                'ValidationE' => 'Datos inválidos'
             ]);
         } catch (Exception $e) {
             Log::channel('slackinfo')->critical($e->getMessage());
-            return Inertia::render('LoginForm', [
-                'error.Exception' => 'Ocurrió un error'
+            return Redirect::route('login')->withErrors([
+                'Exception' => 'Ocurrió un error'
             ]);
         }
     }
@@ -100,7 +100,7 @@ class AuthController extends Controller
                 ['id' => $user->id]
             );
 
-            Log::channel('slackinfo')->info('Se registro ' . $user->email);
+            Log::channel('slackinfo')->info('El usuario ' . $user->email . ' esta en proceso de registro');
             ProcessVerifyEmail::dispatch($user, $url)->onConnection('database')->onQueue('verifyEmail')->delay(now()->addseconds(10));
             return Redirect::route('login');
         } catch (PDOException $e) {

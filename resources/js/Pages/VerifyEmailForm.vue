@@ -25,12 +25,12 @@ const PROPS = defineProps({
     },
 });
 
-const form = reactive({
+const FORM = reactive({
     code_phone: "",
     id: PROPS.user.id,
 });
 function submit() {
-    router.post(PROPS.url, form);
+    router.post(PROPS.url, FORM);
 }
 </script>
 
@@ -49,7 +49,7 @@ function submit() {
                     id="code_phone"
                     type="text"
                     class="mt-1 block w-full"
-                    v-model="form.code_phone"
+                    v-model="FORM.code_phone"
                     autofocus
                     required
                     maxlength="4"
@@ -61,7 +61,7 @@ function submit() {
                     id="id"
                     type="text"
                     class="mt-1 block w-full"
-                    v-model="form.id"
+                    v-model="FORM.id"
                     required
                     autocomplete="id"
                 />
@@ -72,8 +72,8 @@ function submit() {
             <div class="flex items-center justify-end mt-4">
                 <PrimaryButton
                     class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+                    :class="{ 'opacity-25': FORM.processing }"
+                    :disabled="FORM.processing"
                     >Enviar
                 </PrimaryButton>
             </div>

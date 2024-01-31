@@ -12,7 +12,7 @@
     <p>Gracias por registrarte con tu correo {{$email}}</p>
     <h3>Confirmacion</h3>
     <p>Para validar tu correo da click en el siguiente boton<br>
-        Seras direccionado al login</p>
+        Seras direccionado a un vista donde debes ingreas un codigo</p>
     <button style="font-size:larger ;"><a href="{{$url}}">Validar</a></button>
 </body>
 

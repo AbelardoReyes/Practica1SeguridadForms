@@ -27,14 +27,14 @@ const PROPS = defineProps({
         type: String,
     },
 });
-const form = reactive({
+const FORM = reactive({
     code_phone: "",
     email: PROPS.user.email,
     password: "",
     id: PROPS.user.id,
 });
 function submit() {
-    router.post(PROPS.url, form);
+    router.post(PROPS.url, FORM);
 }
 </script>
 
@@ -53,10 +53,10 @@ function submit() {
 
                 <TextInput
                     id="code_phone"
-                    type="number"
-                    max="9999"
+                    type="text"
+                    maxlength="4"
                     class="mt-1 block w-full"
-                    v-model="form.code_phone"
+                    v-model="FORM.code_phone"
                     autofocus
                     autocomplete="code_phone"
                 />
@@ -71,7 +71,7 @@ function submit() {
                     id="email"
                     type="email"
                     class="mt-1 block w-full"
-                    v-model="form.email"
+                    v-model="FORM.email"
                     autofocus
                     autocomplete="email"
                 />
@@ -91,7 +91,7 @@ function submit() {
                     type="password"
                     maxlength="200"
                     class="mt-1 block w-full"
-                    v-model="form.password"
+                    v-model="FORM.password"
                     autocomplete="current-password"
                 />
 
@@ -107,7 +107,7 @@ function submit() {
                     id="id"
                     type="text"
                     class="mt-1 block w-full"
-                    v-model="form.id"
+                    v-model="FORM.id"
                     autofocus
                     autocomplete="id"
                 />
@@ -116,8 +116,8 @@ function submit() {
             <div class="flex items-center justify-end mt-4">
                 <PrimaryButton
                     class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+                    :class="{ 'opacity-25': FORM.processing }"
+                    :disabled="FORM.processing"
                     >Enviar
                 </PrimaryButton>
             </div>
