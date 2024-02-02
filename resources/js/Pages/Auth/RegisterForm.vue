@@ -66,7 +66,7 @@ const submit = () => {
         <form @submit.prevent="submit">
             <div class="grid grid-cols-2 gap-4">
                 <div class="mt-1">
-                    <InputLabel for="name" value="nombre" />
+                    <InputLabel for="name" value="Nombres" />
 
                     <TextInput
                         id="name"
@@ -75,8 +75,8 @@ const submit = () => {
                         v-model="form.name"
                         required
                         autofocus
-                        maxlength="100"
                         autocomplete="name"
+                        maxlength="100"
                     />
 
                     <p
@@ -87,7 +87,7 @@ const submit = () => {
                     </p>
                 </div>
                 <div class="mt-1">
-                    <InputLabel for="last_name" value="Apellido" />
+                    <InputLabel for="last_name" value="Apellidos" />
 
                     <TextInput
                         id="last_name"
@@ -97,7 +97,7 @@ const submit = () => {
                         autofocus
                         maxlength="100"
                         required
-                        autocomplete="last_name"
+                        autocomplete="family-name"
                     />
 
                     <p
@@ -107,28 +107,8 @@ const submit = () => {
                         {{ errors.last_name }}
                     </p>
                 </div>
-                <div class="mt-1">
-                    <InputLabel for="phone" value="Telefono" />
-
-                    <TextInput
-                        id="phone"
-                        type="text"
-                        class="mt-1 block w-full"
-                        v-model="form.phone"
-                        required
-                        maxlength="10"
-                        autofocus
-                        autocomplete="phone"
-                    />
-
-                    <p
-                        class="mb-4 font-medium text-sm text-red-500"
-                        v-if="errors"
-                    >
-                        {{ errors.phone }}
-                    </p>
-                </div>
-
+            </div>
+            <div class="grid grid-cols-1 gap-4">
                 <div class="mt-1">
                     <InputLabel for="email" value="Correo" />
 
@@ -138,7 +118,6 @@ const submit = () => {
                         class="mt-1 block w-full"
                         v-model="form.email"
                         required
-                        autocomplete="phone"
                     />
 
                     <p
@@ -149,49 +128,44 @@ const submit = () => {
                     </p>
                 </div>
 
-                <div class="mt-1">
-                    <InputLabel for="password" value="Contraseña" />
+            <div class="mt-1">
+                <InputLabel for="password" value="Contraseña" />
 
-                    <TextInput
-                        id="password"
-                        type="password"
-                        class="mt-1 block w-full"
-                        v-model="form.password"
-                        required
-                        autocomplete="new-password"
-                    />
+                <TextInput
+                    id="password"
+                    type="password"
+                    class="mt-1 block w-full"
+                    v-model="form.password"
+                    required
+                    autocomplete="new-password"
+                />
 
-                    <p
-                        class="mb-4 font-medium text-sm text-red-500"
-                        v-if="errors"
-                    >
-                        {{ errors.password }}
-                    </p>
-                </div>
-
-                <div class="mt-1">
-                    <InputLabel
-                        for="password_confirmation"
-                        value="Confirma la contraseña"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        class="mt-1 block w-full"
-                        v-model="form.password_confirmation"
-                        required
-                        autocomplete="new-password"
-                    />
-
-                    <p
-                        class="mb-4 font-medium text-sm text-red-500"
-                        v-if="errors"
-                    >
-                        {{ errors.password_confirmation }}
-                    </p>
-                </div>
+                <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">
+                    {{ errors.password }}
+                </p>
             </div>
+
+            <div class="mt-1">
+                <InputLabel
+                    for="password_confirmation"
+                    value="Confirma la contraseña"
+                />
+
+                <TextInput
+                    id="password_confirmation"
+                    type="password"
+                    class="mt-1 block w-full"
+                    v-model="form.password_confirmation"
+                    required
+                    autocomplete="new-password"
+                />
+
+                <p class="mb-4 font-medium text-sm text-red-500" v-if="errors">
+                    {{ errors.password_confirmation }}
+                </p>
+            </div>
+        </div>
+
             <div
                 style="margin-left: 13%; margin-top: 5%"
                 id="contenedor-recaptcha"

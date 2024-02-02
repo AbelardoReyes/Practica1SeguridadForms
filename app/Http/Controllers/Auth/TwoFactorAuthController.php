@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use PDOException;
+use App\Jobs\ProcessSendCodeEmail;
+
 
 use function Laravel\Prompts\error;
 
@@ -36,7 +38,6 @@ class TwoFactorAuthController extends Controller
             if (!$request->hasValidSignature()) {
                 abort(401);
             }
-            $nRandom = rand(1000, 9999);
             $user = User::find($request->id);
             $url = URL::temporarySignedRoute(
                 'verifyTwoFactorAuth',
@@ -45,7 +46,8 @@ class TwoFactorAuthController extends Controller
             );
             // Si el código de teléfono del usuario es nulo, enviar un mensaje de texto con el código aleatorio
             if ($user->code_phone == null) {
-                ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
+                $nRandom = rand(1000, 9999);
+                ProcessSendCodeEmail::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendCodeEmail')->delay(now()->addseconds(30));
                 $user->code_phone = $nRandom;
             }
             $user->save();

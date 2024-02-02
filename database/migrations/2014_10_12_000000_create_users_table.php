@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name')->max(100);
             $table->string("last_name")->max(100);
             $table->string('password');
-            $table->string('phone')->unique()->max(10);
             $table->string('email')->unique();
             $table->bigInteger('code_phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();

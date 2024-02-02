@@ -49,6 +49,9 @@ Route::prefix('auth')->group(function () {
     Route::get('/verify-email', function () {
         return Inertia::render('VerifyEmailForm');
     })->name('verifyEmailView');
+    Route::get('activeUser', function () {
+        return Inertia::render('Auth/ActiveUser');
+    })->name('activeUserView');
     Route::get('/Home', function () {
         $user = session('user');
         return Inertia::render('Sections/Home', [

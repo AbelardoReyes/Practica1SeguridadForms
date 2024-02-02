@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Redirect;
 use App\Jobs\ProcessSendSMS;
 use App\Jobs\ProcessFactorAuthSMS;
+use App\Jobs\ProcessSendCodeEmail;
 use Dotenv\Exception\ValidationException;
 use Exception;
 use Illuminate\Database\QueryException;
@@ -35,7 +36,6 @@ class VerifyEmailAndPhoneController extends Controller
             if (!$request->hasValidSignature()) {
                 abort(401);
             }
-            $nRandom = rand(1000, 9999);
             $user = User::find($request->id);
             $url = URL::temporarySignedRoute(
                 'sendCodeVerifyEmailAndPhone',
@@ -43,8 +43,9 @@ class VerifyEmailAndPhoneController extends Controller
                 ['id' => $user->id]
             );
             if ($user->code_phone == null) {
+                $nRandom = rand(1000, 9999);
                 $user->code_phone = $nRandom;
-                ProcessSendSMS::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendSMS')->delay(now()->addseconds(30));
+                ProcessSendCodeEmail::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendCodeEmail')->delay(now()->addseconds(30));
             }
             $user->save();
             return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);

@@ -16,7 +16,13 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use PDOException;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\ActivateUserRequest;
+use App\Http\Requests\Auth\ActiveUserPostRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Jobs\ProcessSendSMS;
+use App\Jobs\ProcessSendCodeEmail;
+
+
 
 class AuthController extends Controller
 {
@@ -145,5 +151,23 @@ class AuthController extends Controller
                 'Exception' => 'Ocurrio un error'
             ]);
         }
+    }
+
+    /**
+     * Activa un usuario y envía un código de verificación por correo electrónico y teléfono.
+     *
+     * @param ActiveUserPostRequest $request La solicitud de activación de usuario.
+     * @return \Inertia\Response La respuesta de la vista VerifyEmailForm con el usuario y la URL de verificación.
+     */
+    public function activeUser(ActiveUserPostRequest $request)
+    {
+        $user = User::where('email', $request->email)->first();
+        $url = URL::temporarySignedRoute(
+            'sendCodeVerifyEmailAndPhone',
+            now()->addMinutes(30),
+            ['id' => $user->id]
+        );
+        ProcessSendCodeEmail::dispatch($user, $user->code_phone)->onConnection('database')->onQueue('sendCodeEmail')->delay(now()->addseconds(30));
+        return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
     }
 }

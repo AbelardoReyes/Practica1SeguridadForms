@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\VerifyEmailAndPhoneController;
@@ -10,6 +11,11 @@ Route::controller(AuthController::class)->prefix('/auth')->group(function () {
     Route::post('/register', 'register')->name('register');
     Route::get('/logout', 'logout')->middleware('auth')->name('logout');
 })->middleware('throttle:6,1');
+
+Route::controller(AuthController::class)->prefix('/auth')->group(function () {
+    Route::post('/activeUser', 'activeUser')->name('activeUser');
+});
+
 
 Route::controller(VerifyEmailAndPhoneController::class)->prefix('/verifyEmailAndPhone')->group(function () {
     Route::get('/verifyEmail', 'verifyEmail')->name('verifyEmail')->middleware('signed');

@@ -27,7 +27,6 @@ class RegisterRequest extends FormRequest
         return [
             'name' => 'required',
             'last_name' => 'required',
-            'phone' => 'required|unique:users|digits:10',
             'email' => 'required|email|unique:users',
             'password' => 'required|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/',
             'password_confirmation' => 'required|same:password',
@@ -49,9 +48,6 @@ class RegisterRequest extends FormRequest
             'password.regex' => 'La contraseña debe contener al menos una mayuscula, una minuscula, un numero y 8 caracteres',
             'name.required' => 'El nombre es requerido',
             'last_name.required' => 'El apellido es requerido',
-            'phone.required' => 'El numero de telefono es requerido',
-            'phone.unique' => 'El numero de telefono ya esta registrado',
-            'phone.digits' => 'El numero de telefono debe tener 10 digitos',
             'password_confirmation.required' => 'La confirmación de la contraseña es requerida',
             'password_confirmation.same' => 'Las contraseñas no coinciden',
             'gRecaptchaResponse.required' => 'El captcha es requerido'
@@ -68,7 +64,6 @@ class RegisterRequest extends FormRequest
         return [
             'name' => 'nombre',
             'last_name' => 'apellidos',
-            'phone' => 'telefono',
             'email' => 'correo',
             'password' => 'contraseña',
             'password_confirmation' => 'confirmación de contraseña',
@@ -91,7 +86,7 @@ class RegisterRequest extends FormRequest
                     'response' => $this->gRecaptchaResponse
                 ]);
                 if (!$recaptcha->json()['success']) {
-                    Log::channel('slackinfo')->warning('Intento de inicio de sesion con captcha invalido');
+                    Log::channel('slackinfo')->warning('Intento de registro con captcha invalido');
                     $validator->errors()->add('gRecaptchaResponse', 'Captcha Inválido');
                 }
             });
