@@ -4,9 +4,11 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\User;
+use Dotenv\Exception\ValidationException;
 use Exception;
-
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
+use PDOException;
 
 class PostCodePhoneRequest extends FormRequest
 {
@@ -69,8 +71,18 @@ class PostCodePhoneRequest extends FormRequest
                     $validator->errors()->add('code_phone', 'Código Inválido');
                 }
             });
+        } catch (ValidationException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (QueryException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (PDOException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
         } catch (Exception $e) {
-            Log::channel('slackinfo')->critical($e->getMessage());
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
         }
     }
 }

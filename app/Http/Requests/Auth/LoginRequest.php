@@ -97,9 +97,18 @@ class LoginRequest extends FormRequest
                     $validator->errors()->add('gRecaptchaResponse', 'Captcha Inválido');
                 }
             });
+        } catch (ValidationException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (QueryException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (PDOException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
         } catch (Exception $e) {
-            $validator->errors()->add('Exception', 'Ocurrió un error');
-            Log::channel('slackinfo')->critical($e->getMessage());
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
         }
     }
 }

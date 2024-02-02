@@ -4,9 +4,12 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\User;
+use Dotenv\Exception\ValidationException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Database\QueryException;
+use PDOException;
 
 class PostTwoFactorsRequest extends FormRequest
 {
@@ -79,8 +82,18 @@ class PostTwoFactorsRequest extends FormRequest
                     $validator->errors()->add('password', 'Credenciales Inválidas');
                 }
             });
-        } catch(Exception $e){
-            Log::channel('slackinfo')->critical($e->getMessage());
+        } catch (ValidationException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (QueryException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (PDOException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (Exception $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
         }
     }
 }

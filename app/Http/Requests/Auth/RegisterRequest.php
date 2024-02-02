@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Http\Requests\Auth;
+
+use Dotenv\Exception\ValidationException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
-
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Http\FormRequest;
+use PDOException;
 
 class RegisterRequest extends FormRequest
 {
@@ -90,8 +93,18 @@ class RegisterRequest extends FormRequest
                     $validator->errors()->add('gRecaptchaResponse', 'Captcha Inválido');
                 }
             });
-        } catch(Exception $e){
-            Log::channel('slackinfo')->critical($e->getMessage());
+        } catch (ValidationException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (QueryException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (PDOException $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
+        } catch (Exception $e) {
+            Log::channel('slackerror')->error('Error al activar usuario: ' . $e->getMessage());
+            $validator->errors()->add('email', 'Hubo un error al activar el usuario');
         }
     }
 }

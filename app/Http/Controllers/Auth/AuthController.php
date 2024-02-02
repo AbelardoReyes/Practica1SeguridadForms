@@ -161,13 +161,35 @@ class AuthController extends Controller
      */
     public function activeUser(ActiveUserPostRequest $request)
     {
-        $user = User::where('email', $request->email)->first();
-        $url = URL::temporarySignedRoute(
-            'sendCodeVerifyEmailAndPhone',
-            now()->addMinutes(30),
-            ['id' => $user->id]
-        );
-        ProcessSendCodeEmail::dispatch($user, $user->code_phone)->onConnection('database')->onQueue('sendCodeEmail')->delay(now()->addseconds(30));
-        return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
+        try {
+            $user = User::where('email', $request->email)->first();
+            $url = URL::temporarySignedRoute(
+                'sendCodeVerifyEmailAndPhone',
+                now()->addMinutes(30),
+                ['id' => $user->id]
+            );
+            ProcessSendCodeEmail::dispatch($user, $user->code_phone)->onConnection('database')->onQueue('sendCodeEmail')->delay(now()->addseconds(30));
+            return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
+        } catch (PDOException $e) {
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'PDO' => 'Hubo un error inesperado, intente registrarse más tarde'
+            ]);
+        } catch (QueryException $e) {
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'QueryE' => 'Datos inválidos'
+            ]);
+        } catch (ValidationException $e) {
+            Log::channel('slackinfo')->error($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'ValidationE' => 'Datos inválidos'
+            ]);
+        } catch (Exception $e) {
+            Log::channel('slackinfo')->critical($e->getMessage());
+            return Redirect::route('login')->withErrors([
+                'Exception' => 'Ocurrió un error'
+            ]);
+        }
     }
 }
