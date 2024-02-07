@@ -58,6 +58,9 @@ Route::prefix('auth')->group(function () {
             'user' => $user
         ]);
     })->name('Home')->middleware('auth');
+    // Route::get('/invalidSignature', function () {
+    //     return Inertia::render('Error/invalidSignature');
+    // })->name('invalidSignature');
 });
 
 require __DIR__ . '/auth.php';

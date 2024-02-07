@@ -45,8 +45,8 @@ class PostTwoFactorsRequest extends FormRequest
             'code_phone.numeric' => 'El codigo debe ser numerico',
             'code_phone.digits' => 'El codigo debe tener 4 digitos',
             'password.required' => 'La contraseña es requerida',
-            'password.string' => 'La contraseña debe ser una cadena de caracteres',
-            'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+            'password.string' => 'Contraseña incorrecta',
+            'password.min' => 'Contraseña incorrecta',
         ];
     }
     /**

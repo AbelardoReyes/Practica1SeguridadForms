@@ -168,6 +168,7 @@ class AuthController extends Controller
                 now()->addMinutes(30),
                 ['id' => $user->id]
             );
+            Log::channel('slackinfo')->info('Se envio un correo con un codigo de activación de cuenta al usuario ' . $user->email);
             ProcessSendCodeEmail::dispatch($user, $user->code_phone)->onConnection('database')->onQueue('sendCodeEmail')->delay(now()->addseconds(30));
             return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);
         } catch (PDOException $e) {
