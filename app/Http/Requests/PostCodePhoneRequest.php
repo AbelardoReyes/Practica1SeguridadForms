@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use PDOException;
+use Illuminate\Support\Facades\Hash;
 
 class PostCodePhoneRequest extends FormRequest
 {
@@ -67,7 +68,7 @@ class PostCodePhoneRequest extends FormRequest
             $validator->after(function ($validator) {
                 // Verificar si el usuario está activado
                 $user = User::where('id', $this->id)->first();
-                if ($this->code_phone != $user->code_phone) {
+                if (Hash::check($this->code_phone, $user->code_phone) == false) {
                     $validator->errors()->add('code_phone', 'Código Inválido');
                 }
             });

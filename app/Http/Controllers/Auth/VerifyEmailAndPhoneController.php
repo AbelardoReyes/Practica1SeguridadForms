@@ -16,6 +16,7 @@ use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash;
 
 use PDOException;
 use App\Jobs\ProcessEmailSucces;
@@ -44,8 +45,9 @@ class VerifyEmailAndPhoneController extends Controller
             );
             if ($user->code_phone == null) {
                 $nRandom = rand(1000, 9999);
-                $user->code_phone = $nRandom;
                 ProcessSendCodeEmail::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendCodeEmail')->delay(now()->addseconds(30));
+                //guardar codigo encriptado
+                $user->code_phone = Hash::make($nRandom);
             }
             $user->save();
             return Inertia::render('VerifyEmailForm', ['user' => $user, 'url' => $url]);

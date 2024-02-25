@@ -13,6 +13,7 @@ use Dotenv\Exception\ValidationException;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use PDOException;
@@ -48,7 +49,7 @@ class TwoFactorAuthController extends Controller
             if ($user->code_phone == null) {
                 $nRandom = rand(1000, 9999);
                 ProcessSendCodeEmail::dispatch($user, $nRandom)->onConnection('database')->onQueue('sendCodeEmail')->delay(now()->addseconds(30));
-                $user->code_phone = $nRandom;
+                $user->code_phone = Hash::make($nRandom);
             }
             $user->save();
             return Inertia::render('twoFactorAuth', ['user' => $user, 'url' => $url]);

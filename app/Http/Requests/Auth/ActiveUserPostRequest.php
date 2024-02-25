@@ -9,6 +9,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Log;
 use PDOException;
+use Illuminate\Support\Facades\Hash;
 
 class ActiveUserPostRequest extends FormRequest
 {
@@ -62,9 +63,9 @@ class ActiveUserPostRequest extends FormRequest
                 if ($user->status != 0) {
                     $validator->errors()->add('email', 'El usuario ya está activo');
                 }
-                if ($user->code_phone == null) {
+                if ($user->code_phone == null && $user->status == 0) {
                     $nRandom = rand(1000, 9999);
-                    $user->code_phone = $nRandom;
+                    $user->code_phone = Hash::make($nRandom);
                     $user->save();
                 }
             });

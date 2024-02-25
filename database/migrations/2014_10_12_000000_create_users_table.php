@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string("last_name")->max(100);
             $table->string('password');
             $table->string('email')->unique();
-            $table->bigInteger('code_phone')->nullable();
+            $table->string('code_phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('status')->default(false);
             $table->unsignedBigInteger('role_id');

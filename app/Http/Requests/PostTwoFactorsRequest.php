@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Database\QueryException;
 use PDOException;
 
+
 class PostTwoFactorsRequest extends FormRequest
 {
     /**
@@ -75,7 +76,7 @@ class PostTwoFactorsRequest extends FormRequest
             $validator->after(function ($validator) {
                 // Verificar si el usuario está activado
                 $user = User::where('id', $this->id)->first();
-                if ($this->code_phone != $user->code_phone) {
+                if (hash::check($this->code_phone, $user->code_phone) == false) {
                     $validator->errors()->add('code_phone', 'Código Inválido');
                 }
                 if (!Hash::check($this->password, $user->password)) {
