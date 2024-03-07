@@ -43,7 +43,7 @@ function submit() {
     <GuestLayout>
         <Head title="Log in" />
         <h4 style="color: white">
-            Recibiras un mensaje a tu whatsApp con un codigo, el cual debes
+            Recibiras un correo con un codigo, el cual debes
             ingresar aqui para iniciar Sesion
         </h4>
         <br />
