@@ -58,8 +58,9 @@ class AuthController extends Controller
             }
 
             // Store the user in the session
-            $request->session()->put('user', $user);
-            $request->session()->regenerate();
+            // $request->session()->put('user', $user);
+            // $request->session()->regenerate();
+            Auth::login($user);
             Log::channel('slackinfo')->info('Inicio de sesión de ' . $user->email);
 
             return Redirect::route('Home');

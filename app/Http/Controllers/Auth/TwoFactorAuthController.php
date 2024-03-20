@@ -94,8 +94,9 @@ class TwoFactorAuthController extends Controller
             $credentials = $request->only('email', 'password');
             if (Auth::attempt($credentials)) {
                 Log::channel('slackinfo')->warning('El usuario ' . $user->email . ' se logueo como administrador');
-                $request->session()->put('user', $user);
-                $request->session()->regenerate();
+                // $request->session()->put('user', $user);
+                // $request->session()->regenerate();
+                Auth::login($user);
             }
             $user->save();
             return Redirect::route('Home');
