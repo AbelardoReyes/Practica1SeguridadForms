@@ -95,7 +95,7 @@ class VerifyEmailAndPhoneController extends Controller
                 abort(401);
             }
             $user = User::find($request->id);
-            $user->status = true;
+            $user->status = 1;
             $user->code_phone = null;
             $user->save();
             if ($user->role_id == 1) {

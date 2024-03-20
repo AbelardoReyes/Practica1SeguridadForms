@@ -63,7 +63,7 @@ class AuthController extends Controller
             Auth::login($user);
             Log::channel('slackinfo')->info('Inicio de sesión de ' . $user->email);
 
-            return Redirect::route('Home');
+            return Redirect::route('Home', ['user' => $user]);
         } catch (PDOException $e) {
             Log::channel('slackinfo')->error($e->getMessage());
             return Redirect::route('login')->withErrors([

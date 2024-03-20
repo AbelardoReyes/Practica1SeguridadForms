@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,10 +54,7 @@ Route::prefix('auth')->group(function () {
         return Inertia::render('Auth/ActiveUser');
     })->name('activeUserView');
     Route::get('/Home', function () {
-        $user = session('user');
-        return Inertia::render('Sections/Home', [
-            'user' => $user
-        ]);
+        return Inertia::render('Sections/Home', ['user' => auth()->user()]);
     })->name('Home')->middleware('auth');
     // Route::get('/invalidSignature', function () {
     //     return Inertia::render('Error/invalidSignature');

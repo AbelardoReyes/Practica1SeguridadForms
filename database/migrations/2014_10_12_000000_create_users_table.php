@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('code_phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            $table->boolean('status')->default(false);
+            $table->smallInteger('status')->default(false);
             $table->unsignedBigInteger('role_id');
             $table->foreign('role_id')->references('id')->on('roles');
             $table->rememberToken();
